@@ -1,0 +1,198 @@
+---
+title: "Class-07"
+author: "Anna OConnell"
+date: "2026-09-16"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    numbered_sections: TRUE
+    code_download: TRUE
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Answering the Question About Data Types
+```{r answer_to_q}
+con = DBI::dbConnect(RSQLite::SQLite(), "../data/scout.db")
+postings = DBI::dbReadTable(con, "scout_postings") |> tibble::as_tibble()
+DBI::dbDisconnect(con)
+
+jobs = postings |>
+  dplyr::select(company, location_state, remote, posted_at, last_seen_at) |>
+  dplyr::filter(remote == 1) |>
+  dplyr::mutate(
+    posted_at= as.Date(posted_at),
+    last_seen_at = as.Date(last_seen_at),
+    days_open = as.numeric(last_seen_at - posted_at)
+    )
+
+```
+
+# Demo
+```{r demo}
+con = DBI::dbConnect(RSQLite::SQLite(), "../data/scout.db")
+postings = DBI::dbReadTable(con, "scout_postings") |> tibble::as_tibble()
+DBI::dbDisconnect(con)
+
+jobs = postings |>
+  dplyr::select(company, title, location_state, remote, category, posted_at, last_seen_at) |>
+  dplyr::mutate(dplyr::across(dplyr::ends_with("_at"), as.Date),
+                days_open = as.numeric(last_seen_at - posted_at))
+
+jobs
+
+#Q1 - which cat is remote friendly
+# To answer that, the logic would be as follows"
+# - Find the number of jobs per category
+# - Normalize the number of remote jobs by dividing by the total jobs
+
+jobs |>
+  # I want to move from unit of analysis being a job posting to a category
+  dplyr::group_by(category)|>
+  dplyr::summarise(
+    postings = dplyr::n(),
+    remote_share = mean(remote)
+  )
+
+# Today: dplyr, on the data frame from dbReadTable()
+postings |>
+  dplyr::filter(remote == 1) |>
+  dplyr::count(company, sort = TRUE) |>
+  head(10)
+
+# Among full-time postings, which states have the highest remote shares
+ft_remote = postings |>
+  dplyr::group_by(category,location_state) |>
+  dplyr::summarise(postings = dplyr::n(), remote_share = mean(remote) |> round(digits = 2)
+  ) |>
+  dplyr::arrange(dplyr::desc(remote_share)) |>
+  na.omit()
+ft_remote
+
+# notes logic
+jobs |>
+  dplyr::filter(category == "fulltime") |>
+  dplyr::group_by(location_state) |>
+  dplyr::summarise(
+    postings = dplyr::n(),
+    remote_share = mean(remote) |> round(digits = 2)
+  ) |>
+  dplyr::arrange(dplyr::desc(remote_share))|>
+  na.omit()
+  
+```
+
+# Select 
+```{r select}
+con = DBI::dbConnect(RSQLite::SQLite(), "../data/scout.db")
+postings = DBI::dbReadTable(con, "scout_postings") |> tibble::as_tibble()
+DBI::dbDisconnect(con)
+
+# Select impacts only the columns
+jobs = postings |>
+  dplyr::select(company, title, location_state, remote, category, posted_at, last_seen_at)
+jobs
+```
+
+# Filter
+```{r filter}
+# Impacts only the rows
+
+c(one_test = jobs |> dplyr::filter(remote == 1) |> nrow(),
+  both     = jobs |> dplyr::filter(remote == 1, location_state == "OH") |> nrow(),
+  either   = jobs |> dplyr::filter(remote == 1 | category == "internship") |> nrow(),
+  in_set   = jobs |> dplyr::filter(location_state %in% c("OH", "IN", "KY")) |> nrow())
+```
+
+# Mutate and Arrange
+```{r mutate and arrange}
+jobs = jobs |>
+  dplyr::mutate(days_open = as.numeric(as.Date(last_seen_at) - as.Date(posted_at)))
+
+jobs |> dplyr::arrange(dplyr::desc(days_open)) |> dplyr::select(company, title, days_open)
+
+jobs = jobs |> dplyr::mutate(dplyr::across(dplyr::ends_with("_at"), as.Date))    # both dates at once
+jobs |> dplyr::summarize(dplyr::across(dplyr::where(is.numeric), mean))
+```
+
+# Group By and Summarize
+```{r group by and summarize}
+jobs |>
+  dplyr::group_by(location_state) |>
+  dplyr::summarize(postings = dplyr::n(), remote_share = mean(remote)) |>
+  dplyr::arrange(dplyr::desc(postings))
+```
+
+# Join
+```{r join}
+states = tibble::tibble(location_state = state.abb,
+                        state_name = state.name,
+                        region = as.character(state.region))
+
+jobs |>
+  dplyr::left_join(states, by = "location_state") |>
+  dplyr::group_by(region) |>
+  dplyr::summarize(postings = dplyr::n(), remote_share = mean(remote)) |>
+  dplyr::arrange(dplyr::desc(postings))
+
+jobs |> dplyr::count(location_state) |> dplyr::anti_join(states, by = "location_state")
+
+```
+
+# Airbnb
+```{r airbnb}
+con = DBI::dbConnect(RSQLite::SQLite(), "../data/midwest_airbnb.db")
+listings = DBI::dbReadTable(con, "listings") |>
+  tibble::as_tibble()
+DBI::dbDisconnect(con)
+dplyr::glimpse(listings)
+
+# Listings per city
+listings_per_city = listings |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    n_listings = dplyr::n()
+  )
+listings_per_city
+
+listings |>
+  dplyr::count(city) #count does group by and then n()
+
+# the other option is to simply count the number of times each city occurred in col city
+table(listings$city) # returns a named vector vs. above we get a data.frame/tibble
+
+# For entire homes that sleep 4 or more, what is the median price per city
+entire_sleeps4 = listings |>
+  dplyr::filter(room_type == "Entire home/apt", accommodates >=4)
+
+median_price_city = entire_sleeps4 |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    median_price = median(price)
+  )
+median_price_city
+
+# Alternative
+listings |>
+  dplyr::filter(room_type == "Entire home/apt", accommodates >=4) |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(median_price = median(price))
+
+# Cheapest listing per person
+listings |>
+  dplyr::mutate(price_per_person = price/accommodates) |>
+  dplyr::select(city, host_name,name, price, accommodates, price_per_person) |>
+  dplyr::arrange(price_per_person) |>
+  head(3)
+
+# Host names with most listings host_names are not unique, host_ids are
+host_counts = listings |>
+  dplyr::count(host_name, host_id, sort = T) 
+host_counts
+```
+
