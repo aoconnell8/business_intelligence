@@ -1,3 +1,4 @@
 *.pper
 /.Rproj.user
 portfolio/
+.Renviron
