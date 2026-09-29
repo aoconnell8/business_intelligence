@@ -26,6 +26,8 @@ Three questions run against the live app, one exercising a filter, one an aggreg
 1. **"What's the average price of an entire home in Chicago?"**
    ![Average price of entire homes in Chicago](screenshots/ISA401Assignment5-1.png)
 
+2. **"Which neighbourhood in the Twin Cities has the most superhosts?"**
+   ![Neighbourhood with the most superhosts in the Twin Cities](screenshots/ISA401Assignment5-2.png)
 ---
 
 ## Dataset Information
