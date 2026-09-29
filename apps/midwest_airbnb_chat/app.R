@@ -5,14 +5,15 @@ client = ellmer::chat_openai(
   params = ellmer::params(reasoning_effort = "none")
 )
 
-querychat::querychat_app(
-  data_source        = con,
-  table_name         = "listings",
+qc = querychat::querychat(
+  con, "listings",
   client             = client,
   tools              = c("filter", "query", "visualize"),
   greeting           = "Ask me about 14,887 Airbnb listings in Chicago, Columbus, and the Twin Cities.",
   data_description   = "data/data_desc.md",
   extra_instructions = "data/extra_instructions.md"
 )
+
+qc$app()
 
 
