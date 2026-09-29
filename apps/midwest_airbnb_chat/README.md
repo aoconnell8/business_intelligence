@@ -28,6 +28,8 @@ Three questions run against the live app, one exercising a filter, one an aggreg
 
 2. **"Which neighbourhood in the Twin Cities has the most superhosts?"**
    ![Neighbourhood with the most superhosts in the Twin Cities](screenshots/ISA401Assignment5-2.png)
+3. **"Show me a chart of average review score by city."**
+   ![Chart of average review score by city](screenshots/ISA401Assignment5-3.png)
 ---
 
 ## Dataset Information
