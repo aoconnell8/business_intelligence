@@ -1,3 +1,6 @@
+options(shiny.host = "0.0.0.0")
+options(shiny.port = as.integer(Sys.getenv("PORT", 7860)))
+
 con = DBI::dbConnect(RSQLite::SQLite(), "data/midwest_airbnb.db")
 
 client = ellmer::chat_openai(
@@ -15,5 +18,3 @@ qc = querychat::querychat(
 )
 
 qc$app()
-
-
