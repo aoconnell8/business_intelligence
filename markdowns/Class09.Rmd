@@ -1,0 +1,50 @@
+---
+title: "Class10.1"
+author: "Anna OConnell"
+date: "2026-09-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## robotstxt example: MU bulletin
+```{r}
+robotstxt::paths_allowed(paths = "/courses-instruction/isa/", domain = "bulletin.miamioh.edu", bot = "*")
+```
+
+The `True` above means we can scrape it
+
+# Practice
+```{r}
+robotstxt::paths_allowed(paths = "/wiki/Miami_RedHawks_football", domain = "en.wikipedia.org", bot = "*")
+# True
+robotstxt::paths_allowed(paths = "/jobs/", domain = "linkedin.com", bot = "*")
+# True
+robotstxt::paths_allowed(paths = "/jobs/", domain = "indeed.com", bot = "*")
+# True
+robotstxt::paths_allowed(paths = "/viewjob", domain = "indeed.com", bot = "*")
+# False
+
+## For Capstone:
+robotstxt::paths_allowed(paths = "/search?search=cologne", domain = "ulta.com", bot = "*")
+# True
+```
+
+```{r bulletin}
+# checking if we can scrape this info
+# this was done above and found to be true
+# I will load yhe backend of html into r using
+# [a] rvest::read_html() | sometimes rvest::Read_html_live() if the page has some dynamic content
+
+# [b] in some cases we will craft this as a request as shown in slides httr2::request() > ....> httr2::resp_body_html()
+isa_courses_in_r = rvest::read_html("https://bulletin.miamioh.edu/courses-instruction/isa/")
+
+
+# we will extract course titles, which we can extract in a single pipeline given that they look the same on the renderd web page in chrome
+#(bolded, same font size same font type)
+
+
+```
+
