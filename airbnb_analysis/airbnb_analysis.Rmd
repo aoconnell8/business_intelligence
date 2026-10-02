@@ -1,0 +1,287 @@
+---
+title: "airbnb_analysis.Rmd"
+author: "Anna OConnell"
+date: "2026-10-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+con = DBI::dbConnect(RSQLite::SQLite(), "C:/Users/annae/Downloads/business_intelligence/data/midwest_airbnb_extended.db")
+listings     = DBI::dbReadTable(con, "listings") |> tibble::as_tibble()
+availability = DBI::dbReadTable(con, "availability_monthly") |> tibble::as_tibble()
+reviews      = DBI::dbReadTable(con, "reviews_monthly") |> tibble::as_tibble()
+DBI::dbDisconnect(con)
+```
+
+## Task 1
+```{r}
+if(require(dplyr) == FALSE) install.packages("dplyr")
+
+# Count listings per host_id, across ALL cities combined
+host_counts <- listings |>
+  dplyr::count(host_id, name = "host_listing_count")
+
+#Join the count back onto the full listings table
+listings_joined <- listings |>
+  dplyr::left_join(host_counts, by = "host_id")
+
+# How many unique hosts have 10+ listings?
+a1_big_hosts <- host_counts |>
+  dplyr::filter(host_listing_count >= 10)
+
+n_big_hosts <- nrow(a1_big_hosts)
+n_big_hosts
+# 198
+# What percent of Chicago's listings do those big hosts hold?
+chicago_listings <- listings_joined |>
+  dplyr::filter(city == "Chicago")
+
+chicago_total <- nrow(chicago_listings)
+
+chicago_big_host_listings <- chicago_listings |>
+  dplyr::filter(host_listing_count >= 10) |>
+  nrow()
+
+pct_chicago_big_hosts <- (chicago_big_host_listings / chicago_total) * 100
+pct_chicago_big_hosts
+# 31.89945, 32%
+
+```
+
+## Task 2
+```{r}
+
+family_listings <- listings |>
+  dplyr::filter(
+    room_type == "Entire home/apt",
+    accommodates >= 4,
+    number_of_reviews >= 10,
+    review_scores_rating >= 4.8
+  ) |>
+  dplyr::mutate(price_per_person = price / accommodates)
+
+# Median price per person, grouped by city and neighbourhood
+#  count listings per group for 20+ threshold
+neighbourhood_summary <- family_listings |>
+  dplyr::group_by(city, neighbourhood) |>
+  dplyr::summarise(
+    median_price_per_person = median(price_per_person, na.rm = TRUE),
+    n_listings = dplyr::n(),
+    .groups = "drop"
+  )
+
+# Keep  neighbourhoods with >20 qualifying listings
+neighbourhood_summary_filtered <- neighbourhood_summary |>
+  dplyr::filter(n_listings >= 20)
+
+# Columbus neighbourhood with the lowest med price per person
+a3_result <- neighbourhood_summary_filtered |>
+  dplyr::filter(city == "Columbus") |>
+  dplyr::arrange(median_price_per_person)
+
+a3_result
+# North Linden
+
+```
+
+## Task 3
+```{r}
+city_room_summary <- listings |>
+  dplyr::group_by(city, room_type) |>
+  dplyr::summarise(
+    dplyr::across(
+      c(price, reviews_per_month, estimated_revenue_l365d),
+      ~ median(.x, na.rm = TRUE),
+      .names = "median_{.col}"
+    ),
+    .groups = "drop"
+  )
+
+city_room_summary
+
+a4_result <- city_room_summary |>
+  dplyr::filter(city == "Twin Cities", room_type == "Entire home/apt")
+
+a4_result
+# $19,619
+```
+
+## Task 4
+```{r}
+concentration_summary <- listings |>
+  dplyr::filter(!is.na(estimated_revenue_l365d)) |>
+  dplyr::group_by(city) |>
+  dplyr::arrange(dplyr::desc(estimated_revenue_l365d), .by_group = TRUE) |>
+  dplyr::mutate(
+    rank_in_city = dplyr::row_number(),
+    cutoff = ceiling(0.10 * dplyr::n()),
+    is_top_10_pct = rank_in_city <= cutoff
+  ) |>
+  dplyr::summarise(
+    total_revenue = sum(estimated_revenue_l365d),
+    top_10_pct_revenue = sum(estimated_revenue_l365d[is_top_10_pct]),
+    pct_revenue_from_top_10_pct = (top_10_pct_revenue / total_revenue) * 100,
+    .groups = "drop"
+  )
+
+concentration_summary
+
+# A5: Columbus's percent of revenue earned by its top 10%
+a5_result <- concentration_summary |>
+  dplyr::filter(city == "Columbus")
+
+a5_result
+# 36.1%
+```
+
+## Task 5
+```{r}
+
+
+availability_oct <- availability |>
+  dplyr::filter(month == "2026-10")
+
+
+entire_homes <- listings |>
+  dplyr::filter(room_type == "Entire home/apt")
+
+
+entire_homes_oct <- entire_homes |>
+  dplyr::inner_join(availability_oct, by = "id")
+
+
+city_share_summary <- entire_homes_oct |>
+  dplyr::mutate(mostly_taken = nights_available < 0.5 * nights_in_month) |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    share_mostly_taken = mean(mostly_taken, na.rm = TRUE),
+    n_listings = dplyr::n(),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(share_mostly_taken)
+
+city_share_summary
+
+# A6 & A7: city with the LOWEST share, and that share itself
+a6_a7_result <- city_share_summary |>
+  dplyr::slice(1)
+
+a6_a7_result
+# Columbus, and 0.19 or 19%
+
+```
+
+## Task 6
+```{r}
+if(require(dplyr) == FALSE) install.packages("dplyr")
+
+# Step 1: Join reviews to listings to bring in city
+reviews_with_city <- reviews |>
+  dplyr::inner_join(
+    listings |> dplyr::select(id, city),
+    by = "id"
+  )
+
+# Step 2-3: Filter to July 2025 - June 2026, then total reviews per city and month
+city_month_reviews <- reviews_with_city |>
+  dplyr::filter(month >= "2025-07", month <= "2026-06") |>
+  dplyr::group_by(city, month) |>
+  dplyr::summarise(
+    total_reviews = sum(reviews, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+city_month_reviews
+
+# Step 4: Focus on Twin Cities, sort to find busiest and quietest months
+twin_cities_months <- city_month_reviews |>
+  dplyr::filter(city == "Twin Cities") |>
+  dplyr::arrange(dplyr::desc(total_reviews))
+
+twin_cities_months
+
+# A8: busiest month (top row)
+a8_busiest <- twin_cities_months |>
+  dplyr::slice(1)
+
+a8_busiest
+# August 2025 (2025-08)
+
+# A9: ratio of busiest to quietest
+busiest_count  <- max(twin_cities_months$total_reviews)
+quietest_count <- min(twin_cities_months$total_reviews)
+a9_ratio <- busiest_count / quietest_count
+
+a9_ratio
+# 2.372235
+
+
+```
+
+
+## Task 7
+```{r}
+
+entire_homes_known_host <- listings |>
+  dplyr::filter(
+    room_type == "Entire home/apt",
+    host_is_superhost %in% c("t", "f")
+  )
+
+
+city_host_summary <- entire_homes_known_host |>
+  dplyr::group_by(city, host_is_superhost) |>
+  dplyr::summarise(
+    median_price  = median(price, na.rm = TRUE),
+    median_rating = median(review_scores_rating, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+city_host_summary
+
+
+premium_by_city <- city_host_summary |>
+  dplyr::select(city, host_is_superhost, median_price) |>
+  tidyr::pivot_wider(
+    names_from = host_is_superhost,
+    values_from = median_price,
+    names_prefix = "median_price_"
+  ) |>
+  dplyr::mutate(premium = median_price_t - median_price_f)
+
+premium_by_city
+
+# B1: the three premiums, one per city
+b1_result <- premium_by_city |>
+  dplyr::select(city, premium)
+
+b1_result
+# Chicago 43.8, Cbus 40.5, TwinCities -1.38
+```
+
+## Task 8
+```{r}
+if(require(dplyr) == FALSE) install.packages("dplyr")
+
+
+listings_lost <- listings |>
+  dplyr::anti_join(availability, by = "id")
+
+a10_result <- nrow(listings_lost)
+a10_result
+
+lost_by_city <- listings_lost |>
+  dplyr::count(city, name = "n_lost", sort = TRUE)
+
+lost_by_city
+#  city        n_lost
+#  <chr>        <int>
+#1 Chicago        267
+#2 Twin Cities    120
+#3 Columbus        69
+```
+
