@@ -1,0 +1,20 @@
+---
+title: "Class11"
+author: "Anna OConnell"
+date: "2026-10-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+page = rvest::read_html("https://isa401-salvage.vercel.app/registry?start=1")
+classes = page |>
+  rvest::html_elements("p.ship-name") |>
+  rvest::html_text2()
+length(classes)   # check this first: one per card
+ sum(classes == "Dreadnought")
+```
+

@@ -1,0 +1,2960 @@
+---
+title: "ISA 401 Fall 2026 — Master R Study Guide"
+author: "Joseph Sher"
+output: html_document
+---
+
+# How to Use This Guide
+
+This is a master reference for the R/data skills covered across ISA 401 Classes
+01, 02, 03, 04, 05, 06, 07, 08, 10, 11, and 12.
+
+The main goal is not memorizing every line. You should be able to recognize
+what a question is asking, choose the appropriate R function, and modify the
+templates below.
+
+---
+
+# CLASS 01 — Business Intelligence / Data Visualization Foundations
+
+## Big ideas
+
+Know the basic progression:
+
+1. Data
+2. Information
+3. Analysis
+4. Insight
+5. Decision/action
+
+Be able to explain why business intelligence and data visualization help
+organizations make better decisions.
+
+## Basic R idea
+
+R is a programming language used for data analysis, statistics, visualization,
+and reproducible analytical work.
+
+A typical analysis workflow is:
+
+```{r}
+# import data
+data = readr::read_csv("data.csv")
+
+# inspect data
+dplyr::glimpse(data)
+
+# transform data
+result = data |>
+  dplyr::filter(...) |>
+  dplyr::group_by(...) |>
+  dplyr::summarise(...)
+
+# visualize/analyze result
+result
+```
+
+## What to know
+
+- What data analysis is doing
+- Why reproducibility matters
+- Why code is preferable to manually repeating transformations
+- How R fits into a business analytics workflow
+
+---
+
+# CLASS 02 — Git Foundations
+
+## Why Git?
+
+Git tracks changes to files over time.
+
+GitHub is a platform for storing/sharing Git repositories.
+
+A repository is the project folder being tracked.
+
+## Terms to recognize
+
+| Term | Meaning |
+|---|---|
+| Repository | Project tracked by Git |
+| Commit | Saved snapshot of changes |
+| Push | Send local commits to GitHub |
+| Pull | Bring remote changes to your computer |
+| Clone | Copy a repository to your computer |
+| Branch | Separate line of development |
+| GitHub | Online hosting/collaboration platform |
+
+## Reproducibility
+
+A reproducible project allows another person to understand and recreate
+the analysis.
+
+Important habits:
+
+- Keep code with the project
+- Keep data organized
+- Use relative paths when appropriate
+- Commit meaningful changes
+- Push work to the remote repository
+- Avoid depending on undocumented manual steps
+
+## Typical workflow
+
+```text
+Edit files
+   ↓
+Save
+   ↓
+Git status / review changes
+   ↓
+Commit
+   ↓
+Push
+   ↓
+GitHub contains updated project
+```
+
+---
+
+# CLASS 03 — R FOUNDATIONS
+
+# 1. Assignment
+
+Use `<-` or `=` to assign a value.
+
+```{r}
+x = 10
+y <- 20
+
+x
+y
+```
+
+## 2. Arithmetic
+
+```{r}
+10 + 5
+10 - 5
+10 * 5
+10 / 5
+10 ^ 2
+10 %% 3
+10 %/% 3
+```
+
+Know:
+
+- `+` addition
+- `-` subtraction
+- `*` multiplication
+- `/` division
+- `^` exponent
+- `%%` remainder
+- `%/%` integer division
+
+## 3. Variables
+
+```{r}
+price = 50
+quantity = 4
+revenue = price * quantity
+
+revenue
+```
+
+## 4. Vectors
+
+A vector contains multiple values.
+
+```{r}
+sales = c(100, 200, 300, 400)
+sales
+```
+
+`c()` means combine.
+
+```{r}
+names = c("Joe", "Alex", "Sam")
+```
+
+## 5. Named vectors
+
+```{r}
+crashes_by_day = c(
+  2020, 2241, 2327, 2285,
+  2380, 1866, 1664
+)
+
+names(crashes_by_day) = c(
+  "Mon", "Tue", "Wed", "Thu",
+  "Fri", "Sat", "Sun"
+)
+
+crashes_by_day
+```
+
+Access by name:
+
+```{r}
+crashes_by_day["Wed"]
+```
+
+Access multiple names:
+
+```{r}
+crashes_by_day[c("Wed", "Fri")]
+```
+
+## 6. Comparisons
+
+```{r}
+crashes_by_day > 2100
+```
+
+This returns TRUE/FALSE for every value.
+
+Other operators:
+
+```{r}
+x == 10
+x != 10
+x > 10
+x < 10
+x >= 10
+x <= 10
+```
+
+IMPORTANT:
+
+- `=` assigns
+- `==` tests equality
+
+## 7. Logical operators
+
+```{r}
+x > 10 & x < 20
+x > 10 | x < 5
+!(x > 10)
+```
+
+- `&` AND
+- `|` OR
+- `!` NOT
+
+## 8. Data types
+
+Common types:
+
+- character
+- numeric/double
+- integer
+- logical
+
+```{r}
+x = 10
+typeof(x)
+```
+
+Character:
+
+```{r}
+x = "hello"
+typeof(x)
+```
+
+Logical:
+
+```{r}
+x = TRUE
+typeof(x)
+```
+
+Integer:
+
+```{r}
+x = 10L
+typeof(x)
+```
+
+Example from class:
+
+```{r}
+crashes_per_day = 30125 / 365
+crashes_per_day
+```
+
+## 9. Indexing
+
+R starts counting at 1.
+
+```{r}
+sales = c(100, 200, 300, 400)
+
+sales[1]
+sales[2]
+sales[1:3]
+```
+
+Named indexing:
+
+```{r}
+crashes_by_day[c("Wed", "Fri")]
+```
+
+Position indexing:
+
+```{r}
+crashes_by_day[c(3, 5)]
+```
+
+## 10. Sequences
+
+```{r}
+1:10
+seq(from = 1, to = 10, by = 2)
+```
+
+## 11. Missing values
+
+Missing values are represented by `NA`.
+
+```{r}
+x = c(10, 20, NA, 40)
+
+is.na(x)
+```
+
+Many calculations need:
+
+```{r}
+mean(x, na.rm = TRUE)
+```
+
+## 12. Functions
+
+General pattern:
+
+```r
+function_name(argument = value)
+```
+
+Examples:
+
+```{r}
+length(sales)
+sum(sales)
+mean(sales)
+median(sales)
+min(sales)
+max(sales)
+```
+
+---
+
+# CLASS 04 — DATA STRUCTURES / IMPORT
+
+# 1. Vector
+
+```{r}
+x = c(10, 20, 30)
+```
+
+One-dimensional collection of values.
+
+# 2. Matrix
+
+```{r}
+m = matrix(1:6, nrow = 2)
+m
+```
+
+Two-dimensional structure where values generally have the same type.
+
+# 3. List
+
+Lists can contain different types and nested objects.
+
+```{r}
+job = list(
+  title = "Research Data Scientist, Magic Eye",
+  company = "Google",
+  salary = list(
+    min = 147000,
+    max = 210000
+  )
+)
+```
+
+Access:
+
+```{r}
+job[[2]]
+job$company
+job$salary$max
+job[[3]][[2]]
+```
+
+See names:
+
+```{r}
+names(job)
+```
+
+Important distinction:
+
+```r
+job[3]
+```
+
+returns a list.
+
+```r
+job[[3]]
+```
+
+returns the actual third element.
+
+# 4. Data frame
+
+A data frame is a table.
+
+```{r}
+df = data.frame(
+  name = c("Joe", "Sam"),
+  sales = c(100, 200)
+)
+
+df
+```
+
+Columns can be accessed with:
+
+```{r}
+df$name
+df[["name"]]
+df[, "name"]
+```
+
+Rows/columns:
+
+```{r}
+df[1, ]
+df[, 1]
+df[1, 1]
+```
+
+# 5. Subsetting
+
+```{r}
+sales = c(100, 200, 300, 400)
+
+sales[1:3]
+sales[c(1, 4)]
+```
+
+Logical subsetting:
+
+```{r}
+sales[sales > 200]
+```
+
+Named vector:
+
+```{r}
+crashes_by_day[c("Wed", "Fri")]
+```
+
+# 6. `glimpse()`
+
+Use this constantly to understand a data frame.
+
+```{r}
+dplyr::glimpse(df)
+```
+
+It shows:
+
+- number of rows
+- number of columns
+- column names
+- column types
+- sample values
+
+# 7. CSV import
+
+```{r}
+data = readr::read_csv("data.csv")
+```
+
+Base R alternative:
+
+```{r}
+data = read.csv("data.csv")
+```
+
+# 8. Excel
+
+```{r}
+occupation = readxl::read_excel(
+  path = "../data/occupation.xlsx",
+  sheet = 5,
+  skip = 1
+)
+```
+
+Remove rows:
+
+```{r}
+occupation = occupation[-c(32, 33, 34), ]
+```
+
+Keep first 31:
+
+```{r}
+occupation = occupation[1:31, ]
+```
+
+---
+
+# CLASS 05 — DATA IMPORT / JSON
+
+# 1. CSV
+
+```{r}
+logins = readr::read_csv("../data/stage1.csv")
+```
+
+# 2. Excel
+
+```{r}
+occupation = readxl::read_excel(
+  path = "../data/occupation.xlsx",
+  sheet = 5,
+  skip = 1
+)
+```
+
+# 3. JSON
+
+```{r}
+campus = jsonlite::fromJSON(
+  "https://isa401-find-your-seat.vercel.app/campus.json"
+)
+```
+
+Inspect:
+
+```{r}
+names(campus)
+```
+
+Nested JSON:
+
+```{r}
+fsb = campus$Farmer
+fsb$code
+```
+
+Deep indexing:
+
+```{r}
+fsb[[8]]$`2`$sections
+
+sec_floor = fsb[[8]]$`2`
+sec_floor_rooms = sec_floor[[3]]
+
+sec_floor_rooms[6, 2]
+sec_floor_rooms[6, "isa_sections"]
+```
+
+# 4. JSON API response
+
+```{r}
+json_url = paste0(
+  "https://data.cincinnati-oh.gov/resource/rvmt-pkmq.json?$limit=100"
+)
+
+crashes_json = jsonlite::fromJSON(json_url)
+
+dplyr::glimpse(crashes_json)
+```
+
+# 5. Nested API object
+
+```{r}
+log = jsonlite::fromJSON(
+  "https://isa401-import-heist.vercel.app/api/stage2?key=smithj31"
+)
+
+events_df = log$events
+```
+
+Then:
+
+```{r}
+jsonlite::fromJSON(
+  "https://isa401-import-heist.vercel.app/api/finish?code=6"
+)
+```
+
+---
+
+# CLASS 06 — SQLITE
+
+# 1. Connect to database
+
+```{r}
+con = DBI::dbConnect(
+  RSQLite::SQLite(),
+  "../data/midwest_airbnb.db"
+)
+```
+
+# 2. Read a table
+
+```{r}
+listings = DBI::dbReadTable(
+  con,
+  "listings"
+)
+```
+
+# 3. Convert to tibble
+
+```{r}
+listings = DBI::dbReadTable(
+  con,
+  "listings"
+) |>
+  tibble::as_tibble()
+```
+
+# 4. Disconnect
+
+```{r}
+DBI::dbDisconnect(con)
+```
+
+# 5. Complete database workflow
+
+```{r}
+con = DBI::dbConnect(
+  RSQLite::SQLite(),
+  "../data/midwest_airbnb.db"
+)
+
+listings = DBI::dbReadTable(
+  con,
+  "listings"
+) |>
+  tibble::as_tibble()
+
+DBI::dbDisconnect(con)
+
+dplyr::glimpse(listings)
+```
+
+Remember:
+
+```text
+CONNECT → READ → WORK → DISCONNECT
+```
+
+---
+
+# CLASS 07 — DATA WRANGLING WITH dplyr
+
+This is one of the highest-value sections.
+
+## The pipe
+
+```r
+data |>
+  operation1() |>
+  operation2()
+```
+
+Read it as:
+
+> Take this data, then do this, then do this.
+
+# 1. `select()`
+
+Choose columns.
+
+```{r}
+listings |>
+  dplyr::select(city, price, accommodates)
+```
+
+Rename while selecting:
+
+```{r}
+listings |>
+  dplyr::select(
+    city,
+    nightly_price = price
+  )
+```
+
+# 2. `filter()`
+
+Keep rows meeting conditions.
+
+```{r}
+listings |>
+  dplyr::filter(city == "Chicago")
+```
+
+Multiple conditions:
+
+```{r}
+listings |>
+  dplyr::filter(
+    room_type == "Entire home/apt" &
+    accommodates >= 4
+  )
+```
+
+OR:
+
+```{r}
+listings |>
+  dplyr::filter(
+    city == "Chicago" |
+    city == "Columbus"
+  )
+```
+
+# 3. `mutate()`
+
+Create/change columns.
+
+```{r}
+listings |>
+  dplyr::mutate(
+    price_per_person = price / accommodates
+  )
+```
+
+Multiple calculations:
+
+```{r}
+listings |>
+  dplyr::mutate(
+    revenue = price * accommodates,
+    expensive = price > 200
+  )
+```
+
+# 4. `arrange()`
+
+Sort.
+
+```{r}
+listings |>
+  dplyr::arrange(price)
+```
+
+Descending:
+
+```{r}
+listings |>
+  dplyr::arrange(dplyr::desc(price))
+```
+
+# 5. `group_by()`
+
+Creates groups for later summaries.
+
+```{r}
+listings |>
+  dplyr::group_by(city)
+```
+
+Usually paired with `summarise()`.
+
+# 6. `summarise()`
+
+Create summary statistics.
+
+```{r}
+listings |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    median_price = median(price)
+  )
+```
+
+Count rows:
+
+```{r}
+listings |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    count = dplyr::n()
+  )
+```
+
+# 7. `n()`
+
+Number of observations in the current group.
+
+```{r}
+listings |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    count = dplyr::n()
+  )
+```
+
+# 8. `count()`
+
+Shortcut for counting groups.
+
+```{r}
+listings |>
+  dplyr::count(city)
+```
+
+Sorted:
+
+```{r}
+listings |>
+  dplyr::count(host_name, sort = TRUE)
+```
+
+# 9. `mean()`
+
+```{r}
+mean(listings$price)
+```
+
+Grouped:
+
+```{r}
+listings |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    avg_price = mean(price, na.rm = TRUE)
+  )
+```
+
+# 10. `median()`
+
+```{r}
+median(listings$price, na.rm = TRUE)
+```
+
+# 11. `across()`
+
+Apply the same function to multiple columns.
+
+```{r}
+jobs |>
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::ends_with("_at"),
+      as.Date
+    )
+  )
+```
+
+# 12. `bind_rows()`
+
+Stack data frames vertically.
+
+```{r}
+final = dplyr::bind_rows(df1, df2, df3)
+```
+
+# 13. `head()`
+
+```{r}
+head(listings)
+head(listings, 10)
+```
+
+# 14. `na.omit()`
+
+Remove rows containing missing values.
+
+```{r}
+data |> na.omit()
+```
+
+## Class 07 complete examples
+
+```{r}
+con = DBI::dbConnect(
+  RSQLite::SQLite(),
+  "../data/scout.db"
+)
+
+postings = DBI::dbReadTable(
+  con,
+  "scout_postings"
+) |>
+  tibble::as_tibble()
+
+DBI::dbDisconnect(con)
+
+jobs = postings |>
+  dplyr::select(
+    company,
+    title,
+    location_state,
+    remote,
+    category,
+    posted_at,
+    last_seen_at
+  ) |>
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::ends_with("_at"),
+      as.Date
+    ),
+    days_open = as.numeric(
+      last_seen_at - posted_at
+    )
+  )
+```
+
+Grouped summary:
+
+```{r}
+jobs |>
+  dplyr::group_by(category) |>
+  dplyr::summarise(
+    postings = dplyr::n(),
+    remote_share = mean(remote)
+  )
+```
+
+Grouped by two variables:
+
+```{r}
+jobs |>
+  dplyr::group_by(category, location_state) |>
+  dplyr::summarise(
+    postings = dplyr::n(),
+    remote_share = mean(remote) |>
+      round(digits = 2)
+  ) |>
+  dplyr::arrange(
+    dplyr::desc(remote_share)
+  ) |>
+  na.omit()
+```
+
+Filter then group:
+
+```{r}
+jobs |>
+  dplyr::filter(category == "fulltime") |>
+  dplyr::group_by(location_state) |>
+  dplyr::summarise(
+    postings = dplyr::n(),
+    remote_share = mean(remote) |>
+      round(digits = 2)
+  ) |>
+  dplyr::arrange(
+    dplyr::desc(remote_share)
+  ) |>
+  na.omit()
+```
+
+## Airbnb examples
+
+```{r}
+listings |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    count = dplyr::n()
+  )
+```
+
+Equivalent shortcut:
+
+```{r}
+listings |>
+  dplyr::count(city)
+```
+
+Median price by city:
+
+```{r}
+listings |>
+  dplyr::filter(
+    room_type == "Entire home/apt" &
+    accommodates >= 4
+  ) |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    median_price = median(price)
+  ) -> q2
+
+q2
+```
+
+Price per person:
+
+```{r}
+listings |>
+  dplyr::mutate(
+    price_per_person = price / accommodates
+  ) |>
+  dplyr::select(
+    city,
+    host_name,
+    name,
+    price,
+    accommodates,
+    price_per_person
+  ) |>
+  dplyr::arrange(price_per_person) |>
+  head(3)
+```
+
+---
+
+# CLASS 08 — APIs
+
+## What is an API?
+
+An API allows one program to request data/services from another system.
+
+Typical flow:
+
+```text
+request
+   ↓
+URL + parameters + headers
+   ↓
+server
+   ↓
+response
+   ↓
+JSON
+   ↓
+R object/data frame
+```
+
+# 1. Basic `httr2` request
+
+```{r}
+httr2::request(
+  "https://data.cincinnati-oh.gov/resource/rvmt-pkmq.json"
+) |>
+  httr2::req_url_query(
+    "$limit" = 5
+  ) |>
+  httr2::req_perform() |>
+  httr2::resp_body_string() |>
+  jsonlite::fromJSON()
+```
+
+# 2. Query parameters
+
+```{r}
+req = httr2::request("https://example.com/api")
+
+req |>
+  httr2::req_url_query(
+    parameter = "value"
+  )
+```
+
+# 3. Headers
+
+Some APIs require headers.
+
+```{r}
+httr2::request("https://example.com/api") |>
+  httr2::req_headers(
+    "User-Agent" = "your-email@example.com"
+  )
+```
+
+# 4. Environment variables / API keys
+
+Do NOT hard-code secret API keys.
+
+```{r}
+Sys.getenv("FRED_API_KEY")
+```
+
+Use:
+
+```{r}
+httr2::req_url_query(
+  api_key = Sys.getenv("FRED_API_KEY")
+)
+```
+
+# 5. FRED example
+
+```{r}
+ohio_jobs =
+  httr2::request(
+    "https://api.stlouisfed.org/fred/series/observations"
+  ) |>
+  httr2::req_url_query(
+    series_id = "IHLIDXUSOH",
+    api_key = Sys.getenv("FRED_API_KEY"),
+    file_type = "json"
+  ) |>
+  httr2::req_perform() |>
+  httr2::resp_body_string() |>
+  jsonlite::fromJSON()
+
+dplyr::glimpse(ohio_jobs)
+```
+
+Nested response:
+
+```{r}
+ohio_df = ohio_jobs$observations
+
+dplyr::glimpse(ohio_df)
+```
+
+Dates:
+
+```{r}
+ohio_df |>
+  dplyr::mutate(
+    date = lubridate::ymd(date)
+  ) |>
+  dplyr::filter(
+    date >= "2026-09-01"
+  ) -> ohio_df_sept_2026
+```
+
+# 6. USAJobs API
+
+```{r}
+httr2::request(
+  "https://data.usajobs.gov/api/search"
+) |>
+  httr2::req_url_query(
+    Keyword = "Data Analyst",
+    ResultsPerPage = 500
+  ) |>
+  httr2::req_headers(
+    Host = "data.usajobs.gov",
+    "User-Agent" = "fmegahed@miamioh.edu",
+    "Authorization-Key" = Sys.getenv("USAJOBS_API_KEY")
+  ) |>
+  httr2::req_perform() |>
+  httr2::resp_body_string() |>
+  jsonlite::fromJSON(
+    flatten = TRUE
+  ) -> usa_jobs_data
+```
+
+Extract nested data:
+
+```{r}
+usa_jobs_df =
+  usa_jobs_data$SearchResult$SearchResultItems
+```
+
+Select/rename:
+
+```{r}
+jobs_small = usa_jobs_df |>
+  dplyr::select(
+    title = MatchedObjectDescriptor.PositionTitle,
+    department = MatchedObjectDescriptor.DepartmentName,
+    agency = MatchedObjectDescriptor.OrganizationName,
+    location = MatchedObjectDescriptor.PositionLocationDisplay,
+    closes = MatchedObjectDescriptor.ApplicationCloseDate
+  )
+```
+
+# 7. Search/count results
+
+```{r}
+jobs_small |>
+  dplyr::count(department) |>
+  dplyr::arrange(
+    dplyr::desc(n)
+  ) |>
+  head(3)
+```
+
+# 8. String detection
+
+Exact match:
+
+```{r}
+jobs_small |>
+  dplyr::filter(
+    title == "Data Analyst"
+  )
+```
+
+Pattern match:
+
+```{r}
+index_data_analyst =
+  jobs_small$title |>
+  stringr::str_detect(
+    "Data Analytics|Data Analyst"
+  )
+
+count_jesse_standard =
+  jobs_small[index_data_analyst, ]
+```
+
+Then:
+
+```{r}
+count_jesse_standard |>
+  dplyr::count(department) |>
+  dplyr::arrange(
+    dplyr::desc(n)
+  )
+```
+
+---
+
+# CLASS 10 — WEB SCRAPING
+
+## What is web scraping?
+
+Web scraping means programmatically retrieving information from a webpage.
+
+Basic workflow:
+
+```text
+URL
+ ↓
+read_html()
+ ↓
+find HTML elements
+ ↓
+extract text/attributes/tables
+ ↓
+data frame
+```
+
+# 1. Check robots.txt
+
+```{r}
+robotstxt::paths_allowed(
+  paths = "courses-instruction/isa/",
+  domain = "https://bulletin.miamioh.edu/"
+)
+```
+
+Another example:
+
+```{r}
+robotstxt::paths_allowed(
+  paths = "/wiki/",
+  domain = "https://en.wikipedia.org"
+)
+```
+
+# 2. Read webpage
+
+```{r}
+page =
+  rvest::read_html(
+    "https://example.com"
+  )
+```
+
+# 3. Find elements
+
+```{r}
+page |>
+  rvest::html_elements("p")
+```
+
+CSS selector example:
+
+```{r}
+page |>
+  rvest::html_elements(".courseblockdesc")
+```
+
+ID selector:
+
+```r
+"#some_id"
+```
+
+Class selector:
+
+```r
+".some_class"
+```
+
+Element selector:
+
+```r
+"p"
+```
+
+# 4. Extract text
+
+```{r}
+page |>
+  rvest::html_elements("p") |>
+  rvest::html_text2()
+```
+
+# 5. Extract one element
+
+```{r}
+page |>
+  rvest::html_element("p")
+```
+
+# 6. Extract an attribute
+
+```{r}
+page |>
+  rvest::html_element("a") |>
+  rvest::html_attr("href")
+```
+
+# 7. Extract tables
+
+```{r}
+page |>
+  rvest::html_elements("table") |>
+  rvest::html_table()
+```
+
+## Miami course example
+
+```{r}
+isa_courses_in_r =
+  rvest::read_html(
+    "https://bulletin.miamioh.edu/courses-instruction/isa/"
+  )
+
+isa_courses_in_r |>
+  rvest::html_elements(
+    "#sc_sccoursedescs > div > p.courseblocktitle > strong"
+  ) |>
+  rvest::html_text2() ->
+  isa_titles
+
+isa_courses_in_r |>
+  rvest::html_elements(
+    ".courseblockdesc"
+  ) |>
+  rvest::html_text2() ->
+  isa_desc
+
+df = data.frame(
+  title = isa_titles,
+  description = isa_desc
+)
+```
+
+## Key functions to recognize
+
+```r
+rvest::read_html()
+rvest::html_elements()
+rvest::html_element()
+rvest::html_text2()
+rvest::html_attr()
+rvest::html_table()
+```
+
+---
+
+# CLASS 11 — MULTI-PAGE SCRAPING
+
+When one page is not enough, automate the repeated work.
+
+# 1. Loop
+
+```{r}
+dept_abbrv =
+  c("acc", "bus", "isa", "mkt")
+
+courses_df = data.frame()
+
+for (abbrv in dept_abbrv) {
+
+  bulletin_url = paste0(
+    "https://bulletin.miamioh.edu/courses-instruction/",
+    abbrv,
+    "/"
+  )
+
+  webpage =
+    rvest::read_html(bulletin_url)
+
+  webpage |>
+    rvest::html_elements("strong") |>
+    rvest::html_text2() ->
+    titles
+
+  webpage |>
+    rvest::html_elements("p.courseblockdesc") |>
+    rvest::html_text2() ->
+    descs
+
+  df = data.frame(
+    title = titles,
+    desc = descs
+  )
+
+  courses_df =
+    rbind(courses_df, df)
+}
+```
+
+# 2. Why `paste0()`?
+
+It builds URLs dynamically.
+
+```{r}
+dept = "isa"
+
+paste0(
+  "https://bulletin.miamioh.edu/courses-instruction/",
+  dept,
+  "/"
+)
+```
+
+# 3. Function
+
+Instead of repeating code, create a function.
+
+```{r}
+scrape_mu_bulletin = function(abbrv) {
+
+  bulletin_url = paste0(
+    "https://bulletin.miamioh.edu/courses-instruction/",
+    abbrv,
+    "/"
+  )
+
+  webpage =
+    rvest::read_html(bulletin_url)
+
+  webpage |>
+    rvest::html_elements("p.courseblocktitle") |>
+    rvest::html_text2() ->
+    titles
+
+  webpage |>
+    rvest::html_elements("p.courseblockdesc") |>
+    rvest::html_text2() ->
+    descs
+
+  df = data.frame(
+    title = titles,
+    desc = descs
+  )
+
+  return(df)
+}
+```
+
+Test:
+
+```{r}
+test =
+  scrape_mu_bulletin(
+    abbrv = "eco"
+  )
+```
+
+# 4. `purrr::map_df()`
+
+Apply the function to every department and combine rows.
+
+```{r}
+dept_abbrv =
+  c("acc", "bus", "isa", "mkt")
+
+courses_df_from_purrr =
+  purrr::map_df(
+    .x = dept_abbrv,
+    .f = scrape_mu_bulletin
+  )
+```
+
+Think:
+
+```text
+map_df =
+run function on every item
++
+combine outputs into one data frame
+```
+
+# 5. Plane crash example
+
+```{r}
+year = 2025
+
+crash_url =
+  paste0(
+    "https://www.planecrashinfo.com/",
+    year,
+    "/",
+    year,
+    ".htm"
+  )
+
+crash_page =
+  rvest::read_html(
+    crash_url,
+    encoding = "ISO-8859-1"
+  )
+
+crash_tables =
+  crash_page |>
+  rvest::html_elements("table") |>
+  rvest::html_table()
+```
+
+---
+
+# CLASS 12 — STRUCTURED TEXT EXTRACTION / PAGINATION
+
+# 1. Clean a scraped table
+
+```{r}
+year = 2025
+
+crash_url =
+  paste0(
+    "https://www.planecrashinfo.com/",
+    year,
+    "/",
+    year,
+    ".htm"
+  )
+
+crash_page =
+  rvest::read_html(
+    crash_url,
+    encoding = "ISO-8859-1"
+  )
+
+crash_tables =
+  crash_page |>
+  rvest::html_elements("table") |>
+  rvest::html_table()
+
+crash_df =
+  crash_tables[[1]]
+
+colnames(crash_df) =
+  crash_df[1, ]
+
+crash_df =
+  crash_df[-1, ]
+
+crash_df =
+  crash_df |>
+  dplyr::mutate(
+    Date = lubridate::dmy(Date)
+  )
+
+head(crash_df)
+```
+
+# 2. Pagination
+
+Suppose pages use:
+
+```text
+?start=1
+?start=51
+?start=101
+...
+```
+
+Generate starting points:
+
+```{r}
+starts =
+  seq(
+    from = 1,
+    to = 351,
+    by = 50
+  )
+```
+
+# 3. Preallocate a list
+
+```{r}
+pages =
+  vector(
+    "list",
+    length(starts)
+  )
+```
+
+A list is useful because each page produces a separate data frame.
+
+# 4. Loop through pages
+
+```{r}
+base =
+  "https://isa401-salvage.vercel.app"
+
+starts =
+  seq(
+    from = 1,
+    to = 351,
+    by = 50
+  )
+
+pages =
+  vector(
+    "list",
+    length(starts)
+  )
+
+for (i in seq_along(starts)) {
+
+  pg =
+    rvest::read_html(
+      paste0(
+        base,
+        "/registry?start=",
+        starts[i]
+      )
+    )
+
+  pages[[i]] =
+    data.frame(
+      class =
+        pg |>
+        rvest::html_elements(
+          "div > ul > li:nth-child(1) > span"
+        ) |>
+        rvest::html_text2(),
+
+      value =
+        pg |>
+        rvest::html_elements(
+          "span.salvage-value"
+        ) |>
+        rvest::html_text2() |>
+        stringr::str_remove(" MCr")
+    )
+
+  Sys.sleep(1)
+}
+```
+
+# 5. Combine pages
+
+```{r}
+registry =
+  dplyr::bind_rows(pages)
+```
+
+# 6. Filter and convert
+
+```{r}
+Dreadnoughts_df =
+  registry |>
+  dplyr::filter(
+    class == "Dreadnought"
+  ) |>
+  dplyr::mutate(
+    value = as.numeric(value)
+  )
+```
+
+Calculate total:
+
+```{r}
+sum(Dreadnoughts_df$value)
+```
+
+## Pagination pattern to memorize
+
+```text
+create page numbers
+      ↓
+create empty list
+      ↓
+loop through page numbers
+      ↓
+read page
+      ↓
+scrape page
+      ↓
+store data frame in list
+      ↓
+bind_rows()
+```
+
+---
+
+# STRUCTURED EXTRACTION WITH ELLMER
+
+The course also demonstrates using an LLM to turn unstructured text into a
+specified structured object.
+
+## Open a chat
+
+```{r}
+chat =
+  ellmer::chat_openai(
+    model = "gpt-5.6-luna",
+    params = ellmer::params(
+      reasoning_effort = "none"
+    )
+  )
+```
+
+## Scrape text first
+
+```{r}
+isa125_text =
+  rvest::read_html(
+    "https://bulletin.miamioh.edu/courses-instruction/isa/"
+  ) |>
+  rvest::html_elements(
+    "#sc_sccoursedescs > div:nth-child(1)"
+  ) |>
+  rvest::html_text2()
+```
+
+## Define structured output
+
+```{r}
+course_info =
+  chat$chat_structured(
+    isa125_text,
+
+    type =
+      ellmer::type_object(
+
+        name =
+          ellmer::type_string(
+            description =
+              "Name of the course. For example, ISA 235. Information Technology and the Intelligent Enterprise. Do not include the parantheses for the credit hour and do not end with a period"
+          ),
+
+        description =
+          ellmer::type_string(
+            description =
+              "The description of the course without the prereqs."
+          ),
+
+        prereqs =
+          ellmer::type_string(
+            "List the information after Prerequisite:"
+          )
+      )
+  )
+```
+
+## Concept
+
+Instead of asking the model for free-form text:
+
+```text
+"Tell me about this course."
+```
+
+you define the structure you want:
+
+```text
+name
+description
+prereqs
+```
+
+This is called structured extraction.
+
+---
+
+# MASTER R FUNCTION REFERENCE
+
+## Base R
+
+```r
+c()
+names()
+length()
+typeof()
+class()
+str()
+head()
+tail()
+sum()
+mean()
+median()
+min()
+max()
+round()
+as.numeric()
+as.character()
+as.Date()
+seq()
+rep()
+paste()
+paste0()
+print()
+cat()
+return()
+vector()
+list()
+data.frame()
+matrix()
+```
+
+## Data manipulation
+
+```r
+dplyr::select()
+dplyr::filter()
+dplyr::mutate()
+dplyr::arrange()
+dplyr::desc()
+dplyr::group_by()
+dplyr::summarise()
+dplyr::n()
+dplyr::count()
+dplyr::across()
+dplyr::bind_rows()
+dplyr::glimpse()
+```
+
+## Import
+
+```r
+readr::read_csv()
+readxl::read_excel()
+jsonlite::fromJSON()
+```
+
+## Database
+
+```r
+DBI::dbConnect()
+DBI::dbReadTable()
+DBI::dbDisconnect()
+RSQLite::SQLite()
+```
+
+## API
+
+```r
+httr2::request()
+httr2::req_url_query()
+httr2::req_headers()
+httr2::req_perform()
+httr2::resp_body_string()
+Sys.getenv()
+```
+
+## Web scraping
+
+```r
+robotstxt::paths_allowed()
+rvest::read_html()
+rvest::html_elements()
+rvest::html_element()
+rvest::html_text2()
+rvest::html_attr()
+rvest::html_table()
+```
+
+## Strings
+
+```r
+stringr::str_detect()
+stringr::str_remove()
+```
+
+## Dates
+
+```r
+lubridate::ymd()
+lubridate::dmy()
+```
+
+## Iteration
+
+```r
+purrr::map_df()
+seq_along()
+```
+
+## LLM structured extraction
+
+```r
+ellmer::chat_openai()
+ellmer::params()
+ellmer::type_object()
+ellmer::type_string()
+chat$chat_structured()
+```
+
+---
+
+# HIGH-YIELD CODE TEMPLATES
+
+## TEMPLATE 1 — Import CSV
+
+```{r}
+data =
+  readr::read_csv(
+    "../data/file.csv"
+  )
+
+dplyr::glimpse(data)
+```
+
+## TEMPLATE 2 — Import Excel
+
+```{r}
+data =
+  readxl::read_excel(
+    "../data/file.xlsx",
+    sheet = 1
+  )
+```
+
+## TEMPLATE 3 — Import JSON
+
+```{r}
+data =
+  jsonlite::fromJSON(
+    "https://example.com/data.json"
+  )
+```
+
+## TEMPLATE 4 — SQLite
+
+```{r}
+con =
+  DBI::dbConnect(
+    RSQLite::SQLite(),
+    "../data/database.db"
+  )
+
+data =
+  DBI::dbReadTable(
+    con,
+    "table_name"
+  ) |>
+  tibble::as_tibble()
+
+DBI::dbDisconnect(con)
+```
+
+## TEMPLATE 5 — dplyr question
+
+```{r}
+data |>
+  dplyr::filter(condition) |>
+  dplyr::select(columns) |>
+  dplyr::mutate(new_column = calculation) |>
+  dplyr::group_by(group) |>
+  dplyr::summarise(
+    result = mean(variable, na.rm = TRUE)
+  ) |>
+  dplyr::arrange(
+    dplyr::desc(result)
+  )
+```
+
+## TEMPLATE 6 — Basic API
+
+```{r}
+data =
+  httr2::request(
+    "https://example.com/api"
+  ) |>
+  httr2::req_url_query(
+    parameter = "value"
+  ) |>
+  httr2::req_perform() |>
+  httr2::resp_body_string() |>
+  jsonlite::fromJSON()
+```
+
+## TEMPLATE 7 — Basic scraper
+
+```{r}
+page =
+  rvest::read_html(
+    "https://example.com"
+  )
+
+data =
+  page |>
+  rvest::html_elements("CSS_SELECTOR") |>
+  rvest::html_text2()
+```
+
+## TEMPLATE 8 — Scrape text into data frame
+
+```{r}
+page =
+  rvest::read_html(url)
+
+titles =
+  page |>
+  rvest::html_elements("TITLE_SELECTOR") |>
+  rvest::html_text2()
+
+descriptions =
+  page |>
+  rvest::html_elements("DESCRIPTION_SELECTOR") |>
+  rvest::html_text2()
+
+df =
+  data.frame(
+    title = titles,
+    description = descriptions
+  )
+```
+
+## TEMPLATE 9 — Function
+
+```{r}
+scrape_function = function(x) {
+
+  url =
+    paste0(
+      "https://example.com/",
+      x
+    )
+
+  page =
+    rvest::read_html(url)
+
+  result =
+    page |>
+    rvest::html_elements("selector") |>
+    rvest::html_text2()
+
+  return(result)
+}
+```
+
+## TEMPLATE 10 — Apply function to many items
+
+```{r}
+items =
+  c("A", "B", "C")
+
+result =
+  purrr::map_df(
+    .x = items,
+    .f = scrape_function
+  )
+```
+
+## TEMPLATE 11 — Multi-page scraping
+
+```{r}
+starts =
+  seq(
+    from = 1,
+    to = 351,
+    by = 50
+  )
+
+pages =
+  vector(
+    "list",
+    length(starts)
+  )
+
+for (i in seq_along(starts)) {
+
+  page =
+    rvest::read_html(
+      paste0(
+        base,
+        "?start=",
+        starts[i]
+      )
+    )
+
+  pages[[i]] =
+    data.frame(
+      value =
+        page |>
+        rvest::html_elements("selector") |>
+        rvest::html_text2()
+    )
+
+  Sys.sleep(1)
+}
+
+result =
+  dplyr::bind_rows(pages)
+```
+
+---
+
+# EXAM / QUIZ RECOGNITION GUIDE
+
+## "Keep only rows where..."
+
+Use:
+
+```r
+dplyr::filter()
+```
+
+Example:
+
+```r
+data |>
+  dplyr::filter(price > 100)
+```
+
+## "Keep only these columns..."
+
+Use:
+
+```r
+dplyr::select()
+```
+
+## "Create a new column..."
+
+Use:
+
+```r
+dplyr::mutate()
+```
+
+## "Sort..."
+
+Use:
+
+```r
+dplyr::arrange()
+```
+
+Descending:
+
+```r
+dplyr::arrange(dplyr::desc(variable))
+```
+
+## "For each city/category/state..."
+
+Usually:
+
+```r
+group_by(city)
+```
+
+## "Calculate average/median/count for each..."
+
+Usually:
+
+```r
+group_by(...) |>
+summarise(...)
+```
+
+## "Count observations by..."
+
+Usually:
+
+```r
+count(variable)
+```
+
+## "Get data from JSON..."
+
+Use:
+
+```r
+jsonlite::fromJSON()
+```
+
+## "Call an API..."
+
+Look for:
+
+```r
+httr2::request()
+httr2::req_url_query()
+httr2::req_perform()
+httr2::resp_body_string()
+```
+
+## "Scrape a webpage..."
+
+Look for:
+
+```r
+rvest::read_html()
+rvest::html_elements()
+rvest::html_text2()
+```
+
+## "Get a link..."
+
+Use:
+
+```r
+rvest::html_attr("href")
+```
+
+## "Get a table from a webpage..."
+
+Use:
+
+```r
+rvest::html_table()
+```
+
+## "Repeat scraping across several departments..."
+
+Use either:
+
+```r
+for (...)
+```
+
+or:
+
+```r
+purrr::map_df()
+```
+
+## "Repeat across pages..."
+
+Usually:
+
+```r
+seq()
+vector("list", ...)
+for (...)
+bind_rows()
+```
+
+## "Wait between requests..."
+
+```r
+Sys.sleep(1)
+```
+
+---
+
+# COMMON R MISTAKES
+
+## Mistake 1 — `=` vs `==`
+
+Wrong for comparison:
+
+```r
+x = 10
+```
+
+That assigns.
+
+Comparison:
+
+```r
+x == 10
+```
+
+## Mistake 2 — R starts at 1
+
+```r
+x = c("A", "B", "C")
+
+x[1]
+```
+
+returns `"A"`.
+
+## Mistake 3 — `[]` vs `[[]]`
+
+For a list:
+
+```r
+job[3]
+```
+
+returns a list containing the third item.
+
+```r
+job[[3]]
+```
+
+returns the third item itself.
+
+## Mistake 4 — Forgetting the pipe
+
+Instead of:
+
+```r
+filter(data, ...)
+```
+
+you can use:
+
+```r
+data |>
+  dplyr::filter(...)
+```
+
+## Mistake 5 — Forgetting `group_by()`
+
+If asked for a result for every city:
+
+```r
+data |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(...)
+```
+
+## Mistake 6 — Sorting the wrong direction
+
+Ascending:
+
+```r
+arrange(x)
+```
+
+Descending:
+
+```r
+arrange(desc(x))
+```
+
+## Mistake 7 — Forgetting to disconnect SQLite
+
+```r
+DBI::dbDisconnect(con)
+```
+
+## Mistake 8 — Hard-coding API keys
+
+Use:
+
+```r
+Sys.getenv("API_KEY")
+```
+
+instead.
+
+## Mistake 9 — Scraping without checking the page structure
+
+Always inspect:
+
+```r
+page
+```
+
+and identify the correct CSS selector.
+
+## Mistake 10 — Scraping many pages without a pause
+
+Use:
+
+```r
+Sys.sleep(1)
+```
+
+when appropriate.
+
+---
+
+# MASTER CONCEPT MAP
+
+```text
+R BASICS
+  |
+  +-- objects
+  +-- vectors
+  +-- lists
+  +-- data frames
+  +-- indexing
+  +-- functions
+  |
+  v
+DATA IMPORT
+  |
+  +-- CSV
+  +-- Excel
+  +-- JSON
+  |
+  v
+DATABASES
+  |
+  +-- SQLite
+  +-- DBI
+  |
+  v
+DATA WRANGLING
+  |
+  +-- select
+  +-- filter
+  +-- mutate
+  +-- group_by
+  +-- summarise
+  +-- arrange
+  +-- count
+  |
+  v
+APIs
+  |
+  +-- request
+  +-- query parameters
+  +-- headers
+  +-- JSON response
+  |
+  v
+WEB SCRAPING
+  |
+  +-- read_html
+  +-- html_elements
+  +-- html_text2
+  +-- html_attr
+  +-- html_table
+  |
+  v
+AUTOMATION
+  |
+  +-- functions
+  +-- loops
+  +-- purrr::map_df
+  +-- pagination
+  +-- bind_rows
+  |
+  v
+STRUCTURED TEXT EXTRACTION
+  |
+  +-- scrape text
+  +-- define desired schema
+  +-- LLM structured extraction
+```
+
+---
+
+# FINAL MASTER CHECKLIST
+
+Before the exam, you should be able to do each of these without looking up
+the basic syntax.
+
+## R foundations
+
+- [ ] Create variables
+- [ ] Perform arithmetic
+- [ ] Create vectors with `c()`
+- [ ] Name a vector
+- [ ] Check `typeof()`
+- [ ] Use logical comparisons
+- [ ] Use `&`, `|`, and `!`
+- [ ] Index with `[ ]`
+- [ ] Understand `[[]]`
+- [ ] Create/use lists
+- [ ] Create/use data frames
+- [ ] Handle `NA`
+- [ ] Use `seq()`
+- [ ] Write a basic function
+
+## Import
+
+- [ ] Read CSV
+- [ ] Read Excel
+- [ ] Read JSON
+- [ ] Navigate nested JSON
+- [ ] Inspect imported data
+
+## SQLite
+
+- [ ] Connect
+- [ ] Read table
+- [ ] Convert to tibble
+- [ ] Disconnect
+
+## dplyr
+
+- [ ] `select`
+- [ ] `filter`
+- [ ] `mutate`
+- [ ] `arrange`
+- [ ] `desc`
+- [ ] `group_by`
+- [ ] `summarise`
+- [ ] `n`
+- [ ] `count`
+- [ ] `across`
+- [ ] `bind_rows`
+- [ ] `glimpse`
+
+## APIs
+
+- [ ] Build request
+- [ ] Add query parameters
+- [ ] Add headers
+- [ ] Use API key from environment variable
+- [ ] Perform request
+- [ ] Extract response body
+- [ ] Parse JSON
+- [ ] Navigate nested response
+
+## Web scraping
+
+- [ ] Check robots.txt
+- [ ] Read HTML
+- [ ] Find elements
+- [ ] Use CSS selectors
+- [ ] Extract text
+- [ ] Extract attributes
+- [ ] Extract tables
+
+## Automation
+
+- [ ] Write loop
+- [ ] Write scraping function
+- [ ] Use `paste0`
+- [ ] Use `purrr::map_df`
+- [ ] Scrape multiple pages
+- [ ] Use a list to store page results
+- [ ] Use `seq`
+- [ ] Use `seq_along`
+- [ ] Combine with `bind_rows`
+- [ ] Use `Sys.sleep`
+
+## Structured extraction
+
+- [ ] Scrape source text
+- [ ] Define structured fields
+- [ ] Use `ellmer::chat_openai`
+- [ ] Use `chat_structured`
+- [ ] Define object/string types
+
+---
+
+# ONE-PAGE MEMORY SHEET
+
+```r
+# ASSIGN
+x = 10
+
+# VECTOR
+x = c(1, 2, 3)
+
+# INDEX
+x[1]
+
+# LIST
+x = list(a = 1, b = 2)
+x$b
+x[[1]]
+
+# DATA FRAME
+df = data.frame(a = 1:3, b = 4:6)
+
+# INSPECT
+dplyr::glimpse(df)
+
+# IMPORT
+readr::read_csv("file.csv")
+readxl::read_excel("file.xlsx")
+jsonlite::fromJSON("file.json")
+
+# SQLITE
+con = DBI::dbConnect(RSQLite::SQLite(), "file.db")
+df = DBI::dbReadTable(con, "table")
+DBI::dbDisconnect(con)
+
+# DPLYR
+df |>
+  dplyr::filter(x > 10) |>
+  dplyr::select(a, b) |>
+  dplyr::mutate(new = a + b) |>
+  dplyr::group_by(a) |>
+  dplyr::summarise(n = dplyr::n()) |>
+  dplyr::arrange(dplyr::desc(n))
+
+# API
+httr2::request("URL") |>
+  httr2::req_url_query(key = "value") |>
+  httr2::req_perform() |>
+  httr2::resp_body_string() |>
+  jsonlite::fromJSON()
+
+# SCRAPE
+page = rvest::read_html("URL")
+
+page |>
+  rvest::html_elements("CSS_SELECTOR") |>
+  rvest::html_text2()
+
+# FUNCTION
+f = function(x) {
+  x * 2
+}
+
+# LOOP
+for (i in 1:10) {
+  print(i)
+}
+
+# MAP
+purrr::map_df(items, f)
+
+# MULTI-PAGE
+starts = seq(1, 351, 50)
+pages = vector("list", length(starts))
+
+for (i in seq_along(starts)) {
+  pages[[i]] = ...
+  Sys.sleep(1)
+}
+
+result = dplyr::bind_rows(pages)
+```
+
+---
+
+# APPENDIX — EXACT CLASS CODE REFERENCE
+
+The following sections preserve the important R code patterns from the supplied
+class materials so you can compare your own notes/code to the course examples.
+
+## Class 03
+
+```{r}
+crashes_per_day = 30125 / 365
+crashes_per_day
+```
+
+```{r}
+crashes_by_day = c(
+  2020, 2241, 2327, 2285,
+  2380, 1866, 1664
+)
+
+names(crashes_by_day) =
+  c(
+    "Mon", "Tue", "Wed", "Thu",
+    "Fri", "Sat", "Sun"
+  )
+
+crashes_by_day
+```
+
+```{r}
+crashes_by_day > 2100
+```
+
+```{r}
+typeof(crashes_by_day)
+```
+
+```{r}
+crashes_by_day_int =
+  c(
+    2020L, 2241L, 2327L, 2285L,
+    2380L, 1866L, 1664L
+  )
+
+names(crashes_by_day_int) =
+  c(
+    "Mon", "Tue", "Wed", "Thu",
+    "Fri", "Sat", "Sun"
+  )
+
+typeof(crashes_by_day_int)
+```
+
+## Class 04
+
+```{r}
+job = list(
+  title = "Research Data Scientist, Magic Eye",
+  company = "Google",
+  salary = list(
+    min = 147000,
+    max = 210000
+  )
+)
+
+company = job[[2]]
+company_alt = job$company
+max_salary = job$salary$max
+max_salary_alt = job[[3]][[2]]
+job["salary"]$salary$max
+names(job)
+```
+
+```{r}
+crashes_by_day = c(
+  2020, 2241, 2327, 2285,
+  2380, 1866, 1664
+)
+
+names(crashes_by_day) =
+  c(
+    "Mon", "Tue", "Wed", "Thu",
+    "Fri", "Sat", "Sun"
+  )
+
+crashes_by_day[c("Wed", "Fri")]
+crashes_by_day[c(3, 5)]
+crashes_by_day[1:5]
+crashes_by_day[]
+```
+
+## Class 05
+
+```{r}
+campus =
+  jsonlite::fromJSON(
+    "https://isa401-find-your-seat.vercel.app/campus.json"
+  )
+
+names(campus)
+
+fsb = campus$Farmer
+fsb$code
+
+fsb[[8]]$`2`$sections
+
+sec_floor = fsb[[8]]$`2`
+sec_floor_rooms = sec_floor[[3]]
+
+sec_floor_rooms[6, 2]
+sec_floor_rooms[6, "isa_sections"]
+```
+
+```{r}
+occupation =
+  readxl::read_excel(
+    path = "../data/occupation.xlsx",
+    sheet = 5,
+    skip = 1
+  )
+
+occupation =
+  occupation[-c(32, 33, 34), ]
+
+occupation =
+  occupation[1:31, ]
+```
+
+```{r}
+json_url =
+  "https://data.cincinnati-oh.gov/resource/rvmt-pkmq.json?$limit=100"
+
+crashes_json =
+  jsonlite::fromJSON(json_url)
+
+dplyr::glimpse(crashes_json)
+```
+
+```{r}
+logins =
+  readr::read_csv(
+    "../data/stage1.csv"
+  )
+```
+
+## Class 06
+
+```{r}
+con =
+  DBI::dbConnect(
+    RSQLite::SQLite(),
+    "../data/midwest_airbnb.db"
+  )
+
+listings =
+  DBI::dbReadTable(
+    con,
+    "listings"
+  )
+```
+
+## Class 07
+
+```{r}
+listings |>
+  dplyr::count(city)
+```
+
+```{r}
+listings |>
+  dplyr::count(
+    host_name,
+    sort = TRUE
+  )
+```
+
+## Class 08
+
+```{r}
+httr2::request(
+  "https://data.cincinnati-oh.gov/resource/rvmt-pkmq.json"
+) |>
+  httr2::req_url_query(
+    "$limit" = 5
+  ) |>
+  httr2::req_perform() |>
+  httr2::resp_body_string() |>
+  jsonlite::fromJSON()
+```
+
+## Class 10
+
+```{r}
+robotstxt::paths_allowed(
+  paths = "courses-instruction/isa/",
+  domain = "https://bulletin.miamioh.edu/"
+)
+```
+
+```{r}
+isa_courses_in_r =
+  rvest::read_html(
+    "https://bulletin.miamioh.edu/courses-instruction/isa/"
+  )
+
+isa_courses_in_r |>
+  rvest::html_elements(
+    "#sc_sccoursedescs > div > p.courseblocktitle > strong"
+  ) |>
+  rvest::html_text2() ->
+  isa_titles
+
+isa_courses_in_r |>
+  rvest::html_elements(
+    ".courseblockdesc"
+  ) |>
+  rvest::html_text2() ->
+  isa_desc
+
+df =
+  data.frame(
+    title = isa_titles,
+    description = isa_desc
+  )
+```
+
+## Class 11
+
+```{r}
+dept_abbrv =
+  c("acc", "bus", "isa", "mkt")
+
+scrape_mu_bulletin =
+  function(abbrv) {
+
+    bulletin_url =
+      paste0(
+        "https://bulletin.miamioh.edu/courses-instruction/",
+        abbrv,
+        "/"
+      )
+
+    webpage =
+      rvest::read_html(
+        bulletin_url
+      )
+
+    webpage |>
+      rvest::html_elements(
+        "p.courseblocktitle"
+      ) |>
+      rvest::html_text2() ->
+      titles
+
+    webpage |>
+      rvest::html_elements(
+        "p.courseblockdesc"
+      ) |>
+      rvest::html_text2() ->
+      descs
+
+    df =
+      data.frame(
+        title = titles,
+        desc = descs
+      )
+
+    return(df)
+  }
+
+courses_df_from_purrr =
+  purrr::map_df(
+    .x = dept_abbrv,
+    .f = scrape_mu_bulletin
+  )
+```
+
+## Class 12
+
+```{r}
+starts =
+  seq(
+    from = 1,
+    to = 351,
+    by = 50
+  )
+
+pages =
+  vector(
+    "list",
+    length(starts)
+  )
+
+for (i in seq_along(starts)) {
+
+  pg =
+    rvest::read_html(
+      paste0(
+        base,
+        "/registry?start=",
+        starts[i]
+      )
+    )
+
+  pages[[i]] =
+    data.frame(
+      class =
+        pg |>
+        rvest::html_elements(
+          "div > ul > li:nth-child(1) > span"
+        ) |>
+        rvest::html_text2(),
+
+      value =
+        pg |>
+        rvest::html_elements(
+          "span.salvage-value"
+        ) |>
+        rvest::html_text2() |>
+        stringr::str_remove(" MCr")
+    )
+
+  Sys.sleep(1)
+}
+
+registry =
+  dplyr::bind_rows(pages)
+```
+
+---
+
+# END OF MASTER GUIDE
