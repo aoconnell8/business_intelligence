@@ -110,3 +110,34 @@ oh_jobs
 oh_jobs_base_r
 ```
 
+
+```{r homework}
+con = DBI::dbConnect(RSQLite::SQLite(), "data/midwest_airbnb.db")
+listings = DBI::dbReadTable(con, "listings")
+
+nrow(listings) # a1
+
+names(listings)
+city <- listings[["city"]]
+sum(city == "Columbus") # A2
+
+con <- DBI::dbConnect(RSQLite::SQLite(), "data/midwest_airbnb.db")
+listings <- DBI::dbReadTable(con, "listings")
+
+listings |>
+  dplyr::filter(city == "Chicago") |>
+  dplyr::slice_max(price, n = 1) |>
+  dplyr::select(name, price)
+ # A3
+
+listings |>
+  dplyr::summarize(n_neighbourhoods = dplyr::n_distinct(neighbourhood)) #A4
+
+listings |>
+  dplyr::count(host_is_superhost) #A5
+
+sum(listings$price > 1000) #A6
+
+```
+
+

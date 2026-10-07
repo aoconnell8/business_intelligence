@@ -1,0 +1,82 @@
+---
+title: "Webscraping"
+author: "Anna OConnell"
+date: "2026-10-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+```{r}
+# I used ChatISA to help me a lot, as a heads-up
+
+
+if(require(rvest)==FALSE) install.packages("rvest")
+if(require(xml2)==FALSE) install.packages("xml2")
+if(require(purrr)==FALSE) install.packages("purrr")
+if(require(tibble)==FALSE) install.packages("tibble")
+if(require(dplyr)==FALSE) install.packages("dplyr")
+if(require(stringr)==FALSE) install.packages("stringr")
+
+
+clean_text <- function(node) {
+  if (is.na(node)) return(NA_character_)
+  contents  <- xml2::xml_contents(node)
+  text_only <- contents[xml2::xml_type(contents) == "text"]
+  text_only |> xml2::xml_text() |> paste(collapse = " ") |> stringr::str_squish()
+}
+
+get_department_data <- function(dept) {
+
+  encoded_dept <- utils::URLencode(dept, reserved = TRUE)
+  url <- paste0("https://miamioh.edu/fsb/directory/?up=/query/all/all/", encoded_dept, "/all")
+
+  page <- rvest::read_html(url)
+
+  rows <- page |> rvest::html_elements("table tr")
+  rows <- rows[-1]  # drop header row
+
+  purrr::map_dfr(rows, function(row) {
+    name_link <- row |> rvest::html_element("td:nth-child(3) strong a")
+    pos_node  <- row |> rvest::html_element("td:nth-child(3) i")
+
+    tibble::tibble(
+      department = row |> rvest::html_element("td:nth-child(1)") |> rvest::html_text2(),
+      name       = clean_text(name_link),
+      position   = clean_text(pos_node),
+      website    = name_link |> rvest::html_attr("href")
+    )
+  })
+}
+
+
+departments <- c(
+  "Accountancy",
+  "Economics",
+  "Entrepreneurship",
+  "Finance",
+  "Information Systems & Analytics",
+  "Marketing",
+  "Management"
+)
+
+
+all_faculty <- purrr::map_dfr(departments, get_department_data)
+
+# drop exact duplicate rows
+fsb_faculty <- all_faculty |>
+  dplyr::filter(department %in% departments) |>
+  dplyr::distinct(department, name, .keep_all = TRUE) |>
+  dplyr::arrange(department, name)
+
+fsb_faculty |>
+  dplyr::count(department) |>
+  print()
+
+# Final answer
+head(fsb_faculty)
+```

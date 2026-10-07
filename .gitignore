@@ -1,6 +1,7 @@
 *.pper
 /.Rproj.user
 portfolio/
+<<<<<<< Updated upstream
 .Renviron
 .Renviron
 .Renviron
@@ -8,3 +9,7 @@ portfolio/
 .Renviron
 .Renviron
 .Renviron
+.Renviron
+=======
+data/midwest_airbnb.db
+>>>>>>> Stashed changes
