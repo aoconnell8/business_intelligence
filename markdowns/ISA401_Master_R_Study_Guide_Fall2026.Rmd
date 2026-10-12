@@ -1,7 +1,9 @@
 ---
 title: "ISA 401 Fall 2026 — Master R Study Guide"
 author: "Joseph Sher"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 # How to Use This Guide

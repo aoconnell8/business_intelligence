@@ -1,0 +1,2628 @@
+---
+title: "ISA 401 Exam Code Study Guide"
+author: "Baiden Gallo"
+output: html_document
+---
+
+# ISA 401 — R Code Study Guide
+
+This file is a code-focused reference based on the provided study material. It covers the R code patterns needed for the questions/topics in the material: R objects and indexing, importing data, exploring data, strings, web scraping, robots.txt, APIs/JSON, functions, purrr, tidy data, data types, and visualization/data encoding.
+
+---
+
+# Question 3:pepper packet
+```{r}
+lst = list( 
+  gdp = data.frame(year = c(2020, 2021, 2022), values = c(19200, 20500, 21300), units = "USD billions" ),
+  population = list(country = "United States", year = c(2020, 2021, 2022), values = c(325, 331, 335), units = "millions"),
+  indicators = c("gdp", "population", "inflation"), # Available indicators
+  inflation_rate = 3.2 # Latest inflation rate as a single value
+)
+
+lst[[2]]
+```
+
+#Question 4
+```{r total obervations}
+hibp = jsonlite::fromJSON("../data/hibp_data.json")
+dplyr::glimpse(hibp)
+```
+#Question 5
+```{r 500th row}
+hibp[500, ]
+```
+
+
+#Question 6
+```{r observations with miamioh.edu}
+hibp = jsonlite::fromJSON("hibp_data.json")
+hibp$Email |>
+  stringr::str_detect("miamioh.edu") |>
+  table()
+
+```
+
+#Question 7
+```{r allowed to scrape?}
+robotstxt::paths_allowed("https://en.wikipedia.org/wiki/Miami_University")
+#True means allowed to scrape
+```
+
+#Question 8
+```{r}
+#extract urls for 27 academic regulation policies at site below
+#save links in vector titled "mu_policies"
+#use rvest::read_html
+
+'https://miamioh.edu/policy-library/students/undergraduate/academic-regulations/index.html' |> 
+  rvest::read_html() |> 
+  rvest::html_elements('a.news-lockup__body-link') |> 
+  rvest::html_attr(name = 'href') |> 
+  # optional to make absolute URLs instead of partials
+  rvest::url_absolute('https://miamioh.edu/policy-library/') -> mu_policies
+
+mu_policies
+```
+
+#Question 9
+```{r}
+#scrape miami swim and dive roster, return df with 2 columns, name, location
+#scrape names and years only for male and female athletes
+#store df in swim_df
+
+'https://miamiredhawks.com/sports/swimming-and-diving/roster' |> 
+  rvest::read_html() -> page
+
+page |> 
+  rvest::html_elements('div > a > h3') |> 
+  rvest::html_text2() -> name
+
+page |> 
+  rvest::html_elements('span.s-person-card__content__person__location-item.flex.items-center') |> 
+  rvest::html_text() -> location
+
+swim_df = data.frame(name[1:52], location) # last four names are the coaches
+```
+
+#Question 10
+```{r}
+#paste url into search:
+#use latitude and longitude for location to 4 decimals
+
+weather_url =
+  "https://api.weather.gov/points/26.142,-81.7948"
+
+weather =
+  jsonlite::fromJSON(weather_url)
+
+weather$properties$gridX
+
+```
+
+
+#Question 11
+```{r}
+toxic_ips = readr::read_csv("../data/toxic_ips_oct2025.csv")
+
+ip_addresses = toxic_ips$IP
+
+x = ip_addresses[1]
+
+ip_api = function(x){
+  paste0(
+    "http://ip-api.com/json/", x,
+    "?fields=status,message,continent,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,currency,isp,org,as,query") |> 
+    jsonlite::fromJSON() -> response
+  
+  response |> as.data.frame() -> df
+  
+  return(df)
+}
+
+ip_df = purrr::map_df(.x = ip_addresses, .f = ip_api)
+
+ip_df |> tibble::tibble() # so it prints better
+```
+
+
+
+#Question 12
+```{r}
+wb_tbl = readr::read_csv('https://raw.githubusercontent.com/fmegahed/isa401/main/data/wb_hospital_beds.csv')
+```
+
+Question 13
+```{r}
+library(readr)
+ntse_endowment_us_and_canada_2020 <- read_csv("../data/ntse_endowment_us_and_canada_2020.csv")
+
+#unit of analysis: every row contains one observation
+```
+
+#Question 14
+```{r}
+# reading the data from my github repo to avoid an issues with file location
+
+ntse_tbl = readr::read_csv('https://raw.githubusercontent.com/fmegahed/isa401/main/data/ntse_endowment_us_and_canada_2020.csv')
+
+# a glimpse of the data
+# for this analysis, do NOT convert chr to factors (do not worry about this)
+
+dplyr::glimpse(ntse_tbl)
+
+
+#The data is NOT technically correct since the id column should be a chr/factor, and the last two columns should be categorical. The code needed to make this technically correct is as follows:
+
+#ntse_tbl$id = as.factor(ntse_tbl$id)
+#ntse_tbl$hbcu_indicator = as.factor(ntse_tbl$hbcu_indicator)
+#ntse_tbl$carnegie_category = as.factor(ntse_tbl$carnegie_category)
+```
+
+#Question 15
+R is good at doing statistical analysis and modeling via regression, it has many packages for stats of all levels
+
+R is good at data cleaning and reshaping via the tidyverse, makes pipelines readable and scales better than excel
+
+R scripts are very easily reproducible, it shows every step from data to result, easy to rerun with new data or pass to someone else, spreadsheets hide their logic
+
+R can candle far more data than a spreadsheet can, so use if handling big data
+
+
+# 1. Setup: Packages
+
+```{r setup, message=FALSE, warning=FALSE}
+# Install packages only if you do not already have them:
+# install.packages(c(
+#   "dplyr", "readr", "jsonlite", "stringr",
+#   "rvest", "robotstxt", "purrr", "tibble",
+#   "tidyr", "ggplot2"
+# ))
+
+library(dplyr)
+library(readr)
+library(jsonlite)
+library(stringr)
+library(rvest)
+library(robotstxt)
+library(purrr)
+library(tibble)
+library(tidyr)
+library(ggplot2)
+```
+
+A safe alternative is to use the package name before the function:
+
+```{r}
+dplyr::glimpse(df)
+readr::read_csv("data/file.csv")
+jsonlite::fromJSON("data/file.json")
+stringr::str_detect(x, "pattern")
+rvest::read_html(url)
+purrr::map_df(x, my_function)
+```
+
+---
+
+# 2. Basic R Objects
+
+## Assign a value
+
+```{r}
+x = 10
+name = "Joe"
+passed = TRUE
+```
+
+You can also use `<-`:
+
+```{r}
+x <- 10
+```
+
+## Vector
+
+```{r}
+numbers = c(10, 20, 30, 40)
+names = c("Joe", "Bob", "Sam")
+```
+
+## Sequence
+
+```{r}
+1:10
+seq(1, 10, by = 2)
+```
+
+## Basic calculations
+
+```{r}
+10 + 5
+10 - 5
+10 * 5
+10 / 5
+10^2
+```
+
+---
+
+# 3. R Data Types
+
+## Character
+
+```{r}
+x = "Miami University"
+```
+
+## Numeric
+
+```{r}
+x = 12.5
+```
+
+## Integer
+
+```{r}
+x = 12L
+```
+
+## Logical
+
+```{r}
+x = TRUE
+y = FALSE
+```
+
+## Factor
+
+Used for categorical information.
+
+```{r}
+x = factor(c("HBCU", "Non-HBCU", "HBCU"))
+```
+
+## Check a type
+
+```{r}
+class(x)
+typeof(x)
+```
+
+## Convert types
+
+```{r}
+as.character(x)
+as.numeric(x)
+as.integer(x)
+as.logical(x)
+as.factor(x)
+```
+
+Important idea:
+
+```r
+# A number can represent a category.
+# Example:
+# 1 = HBCU
+# 2 = Non-HBCU
+#
+# In that situation, the variable may be categorical
+# even though its values are numbers.
+
+df$hbcu_indicator = as.factor(df$hbcu_indicator)
+df$carnegie_category = as.factor(df$carnegie_category)
+```
+
+---
+
+# 4. Lists
+
+## Create a list
+
+```{r}
+lst = list(
+  name = "Joe",
+  scores = c(90, 85, 95),
+  information = list(
+    age = 22,
+    major = "Accountancy"
+  )
+)
+```
+
+## Single brackets
+
+```{r}
+lst[1]
+```
+
+Returns a list containing element 1.
+
+## Double brackets
+
+```{r}
+lst[[1]]
+```
+
+Returns the actual element 1.
+
+## Named element
+
+```{r}
+lst$name
+```
+
+## Nested list
+
+```{r}
+lst$information
+lst$information$age
+lst$information$major
+```
+
+## The key distinction
+
+```r
+lst[2]      # list containing element 2
+lst[[2]]    # actual element 2
+lst$name    # element named "name"
+```
+
+---
+
+# 5. Data Frames / Tibbles
+
+## Create a data frame
+
+```{r}
+df = data.frame(
+  name = c("Joe", "Bob", "Sam"),
+  age = c(22, 21, 23),
+  major = c("Accountancy", "Finance", "Marketing")
+)
+```
+
+## Create a tibble
+
+```{r}
+df = tibble::tibble(
+  name = c("Joe", "Bob", "Sam"),
+  age = c(22, 21, 23)
+)
+```
+
+## Access a column
+
+```{r}
+df$name
+df[["name"]]
+df[, "name"]
+```
+
+## Access a row
+
+```{r}
+df[1, ]
+```
+
+## Access a specific cell
+
+```{r}
+df[1, 2]
+```
+
+## Access a specific column by number
+
+```{r}
+df[, 2]
+```
+
+## Multiple rows
+
+```{r}
+df[1:2, ]
+```
+
+## Multiple columns
+
+```{r}
+df[, c(1, 3)]
+```
+
+---
+
+# 6. Essential Data Exploration
+
+## First rows
+
+```{r}
+head(df)
+```
+
+## Last rows
+
+```{r}
+tail(df)
+```
+
+## Structure
+
+```{r}
+str(df)
+```
+
+## Compact overview
+
+```{r}
+dplyr::glimpse(df)
+```
+
+## Number of rows / observations
+
+```{r}
+nrow(df)
+```
+
+## Number of columns / variables
+
+```{r}
+ncol(df)
+```
+
+## Rows and columns together
+
+```{r}
+dim(df)
+```
+
+The result is:
+
+```text
+number of rows, number of columns
+```
+
+## Column names
+
+```{r}
+names(df)
+colnames(df)
+```
+
+## Summary
+
+```{r}
+summary(df)
+```
+
+## Unique values
+
+```{r}
+unique(df$major)
+```
+
+## Count categories
+
+```{r}
+table(df$major)
+```
+
+---
+
+# 7. Reading CSV Files
+
+## Local CSV
+
+```{r}
+df = readr::read_csv("data/file.csv")
+```
+
+## CSV from a URL
+
+```{r}
+df = readr::read_csv(
+  "https://example.com/file.csv"
+)
+```
+
+## Examine the result
+
+```{r}
+dplyr::glimpse(df)
+```
+
+Example from the study material:
+
+```{r}
+ntse_tbl = readr::read_csv(
+  "https://raw.githubusercontent.com/fmegahed/isa401/main/data/ntse_endowment_us_and_canada_2020.csv"
+)
+
+dplyr::glimpse(ntse_tbl)
+```
+
+---
+
+# 8. Reading JSON
+
+Use `jsonlite::fromJSON()`.
+
+```{r}
+hibp = jsonlite::fromJSON(
+  "../data/hibp_data.json"
+)
+```
+
+Inspect it:
+
+```{r}
+dplyr::glimpse(hibp)
+```
+
+You can also inspect:
+
+```{r}
+str(hibp)
+names(hibp)
+```
+
+---
+
+# 9. Working with Rows and Columns
+
+General structure:
+
+```r
+data[ROWS, COLUMNS]
+```
+
+## Row 500, all columns
+
+```{r}
+df[500, ]
+```
+
+## All rows, column 3
+
+```{r}
+df[, 3]
+```
+
+## Row 500, column 3
+
+```{r}
+df[500, 3]
+```
+
+## Rows 1 through 10
+
+```{r}
+df[1:10, ]
+```
+
+## Rows 1 through 10, column 2
+
+```{r}
+df[1:10, 2]
+```
+
+## Columns 1, 3, and 5
+
+```{r}
+df[, c(1, 3, 5)]
+```
+
+---
+
+# 10. Pipes
+
+The pipe sends the result of one operation into the next operation.
+
+```{r}
+df |>
+  dplyr::glimpse()
+```
+
+Example:
+
+```{r}
+df$Email |>
+  stringr::str_detect("miamioh.edu") |>
+  table()
+```
+
+Think:
+
+```text
+data
+  ↓
+operation
+  ↓
+operation
+  ↓
+answer
+```
+
+---
+
+# 11. Stringr — Working with Text
+
+## Detect a pattern
+
+```{r}
+stringr::str_detect(
+  x,
+  "pattern"
+)
+```
+
+Example:
+
+```{r}
+emails = c(
+  "joe@miamioh.edu",
+  "student@gmail.com",
+  "bob@miamioh.edu"
+)
+
+stringr::str_detect(
+  emails,
+  "miamioh.edu"
+)
+```
+
+Returns TRUE/FALSE for each value.
+
+## Count TRUE/FALSE
+
+```{r}
+stringr::str_detect(
+  emails,
+  "miamioh.edu"
+) |>
+  table()
+```
+
+## Count only matching values
+
+```{r}
+sum(
+  stringr::str_detect(
+    emails,
+    "miamioh.edu"
+  )
+)
+```
+
+## Extract matching text
+
+```{r}
+stringr::str_extract(
+  emails,
+  "miamioh.edu"
+)
+```
+
+## Replace text
+
+```{r}
+stringr::str_replace(
+  emails,
+  "gmail.com",
+  "example.com"
+)
+```
+
+## Replace all matches
+
+```{r}
+stringr::str_replace_all(
+  emails,
+  "gmail.com",
+  "example.com"
+)
+```
+
+## String length
+
+```{r}
+stringr::str_length(emails)
+```
+
+## Lowercase
+
+```{r}
+stringr::str_to_lower(emails)
+```
+
+## Uppercase
+
+```{r}
+stringr::str_to_upper(emails)
+```
+
+## Split text
+
+```{r}
+stringr::str_split(
+  "Joe Sher",
+  " "
+)
+```
+
+---
+
+# 12. Filtering Data
+
+## Base R
+
+```{r}
+df[df$age > 21, ]
+```
+
+## dplyr
+
+```{r}
+df |>
+  dplyr::filter(age > 21)
+```
+
+## Multiple conditions
+
+```{r}
+df |>
+  dplyr::filter(
+    age > 21,
+    major == "Accountancy"
+  )
+```
+
+## OR condition
+
+```{r}
+df |>
+  dplyr::filter(
+    major == "Accountancy" |
+    major == "Finance"
+  )
+```
+
+## `%in%`
+
+```{r}
+df |>
+  dplyr::filter(
+    major %in% c(
+      "Accountancy",
+      "Finance"
+    )
+  )
+```
+
+---
+
+# 13. Selecting Columns
+
+```{r}
+df |>
+  dplyr::select(name, age)
+```
+
+Remove a column:
+
+```{r}
+df |>
+  dplyr::select(-age)
+```
+
+Select columns by position:
+
+```{r}
+df |>
+  dplyr::select(1, 3)
+```
+
+---
+
+# 14. Creating / Modifying Variables
+
+```{r}
+df |>
+  dplyr::mutate(
+    age_plus_one = age + 1
+  )
+```
+
+Multiple variables:
+
+```{r}
+df |>
+  dplyr::mutate(
+    age_plus_one = age + 1,
+    adult = age >= 18
+  )
+```
+
+---
+
+# 15. Sorting
+
+Ascending:
+
+```{r}
+df |>
+  dplyr::arrange(age)
+```
+
+Descending:
+
+```{r}
+df |>
+  dplyr::arrange(
+    dplyr::desc(age)
+  )
+```
+
+---
+
+# 16. Counting / Summarizing
+
+Count categories:
+
+```{r}
+df |>
+  dplyr::count(major)
+```
+
+Summarize:
+
+```{r}
+df |>
+  dplyr::summarise(
+    average_age = mean(age, na.rm = TRUE)
+  )
+```
+
+Group and summarize:
+
+```{r}
+df |>
+  dplyr::group_by(major) |>
+  dplyr::summarise(
+    average_age = mean(age, na.rm = TRUE)
+  )
+```
+
+Useful functions:
+
+```r
+mean()
+median()
+min()
+max()
+sum()
+sd()
+n()
+```
+
+---
+
+# 17. Missing Values
+
+Check for missing values:
+
+```{r}
+is.na(df)
+```
+
+Count missing values in one variable:
+
+```{r}
+sum(is.na(df$age))
+```
+
+Filter missing:
+
+```{r}
+df |>
+  dplyr::filter(is.na(age))
+```
+
+Filter non-missing:
+
+```{r}
+df |>
+  dplyr::filter(!is.na(age))
+```
+
+When calculating:
+
+```{r}
+mean(df$age, na.rm = TRUE)
+```
+
+---
+
+# 18. Web Scraping — Core Pattern
+
+The basic scraping process:
+
+```text
+URL
+ ↓
+read_html()
+ ↓
+html_elements()
+ ↓
+html_text2() OR html_attr()
+ ↓
+vector/data frame
+```
+
+## Read webpage
+
+```{r}
+url = "https://example.com"
+
+page = rvest::read_html(url)
+```
+
+## Find elements
+
+```{r}
+page |>
+  rvest::html_elements("h1")
+```
+
+## Extract text
+
+```{r}
+page |>
+  rvest::html_elements("h1") |>
+  rvest::html_text2()
+```
+
+## Extract attributes
+
+```{r}
+page |>
+  rvest::html_elements("a") |>
+  rvest::html_attr("href")
+```
+
+---
+
+# 19. CSS Selectors
+
+## Element selector
+
+```r
+"h1"
+"h2"
+"h3"
+"a"
+"div"
+"span"
+"p"
+```
+
+## Class selector
+
+If HTML has:
+
+```html
+<span class="location">
+```
+
+use:
+
+```r
+"span.location"
+```
+
+or:
+
+```r
+".location"
+```
+
+## ID selector
+
+If HTML has:
+
+```html
+<div id="main">
+```
+
+use:
+
+```r
+"#main"
+```
+
+## Child selector
+
+```r
+"div > a > h3"
+```
+
+This means:
+
+```text
+h3
+inside a
+inside div
+```
+
+---
+
+# 20. Scrape Links
+
+Basic:
+
+```{r}
+links =
+  "https://example.com" |>
+  rvest::read_html() |>
+  rvest::html_elements("a") |>
+  rvest::html_attr("href")
+```
+
+## Make relative URLs absolute
+
+```{r}
+links =
+  links |>
+  rvest::url_absolute(
+    "https://example.com/"
+  )
+```
+
+Or directly in a pipeline:
+
+```{r}
+links =
+  "https://example.com" |>
+  rvest::read_html() |>
+  rvest::html_elements("a") |>
+  rvest::html_attr("href") |>
+  rvest::url_absolute("https://example.com/")
+```
+
+---
+
+# 21. Exact Study-Material Pattern — Scrape Policy Links
+
+```{r}
+mu_policies =
+  "https://miamioh.edu/policy-library/students/undergraduate/academic-regulations/index.html" |>
+  rvest::read_html() |>
+  rvest::html_elements(
+    "a.news-lockup__body-link"
+  ) |>
+  rvest::html_attr(
+    name = "href"
+  ) |>
+  rvest::url_absolute(
+    "https://miamioh.edu/policy-library/"
+  )
+
+mu_policies
+```
+
+The key pattern is:
+
+```text
+read_html
+→ html_elements
+→ html_attr("href")
+→ url_absolute
+```
+
+---
+
+# 22. Exact Study-Material Pattern — Scrape Names and Locations
+
+```{r}
+page =
+  rvest::read_html(
+    "https://miamiredhawks.com/sports/swimming-and-diving/roster"
+  )
+
+name =
+  page |>
+  rvest::html_elements(
+    "div > a > h3"
+  ) |>
+  rvest::html_text2()
+
+location =
+  page |>
+  rvest::html_elements(
+    "span.s-person-card__content__person__location-item.flex.items-center"
+  ) |>
+  rvest::html_text()
+
+swim_df =
+  data.frame(
+    name,
+    location
+  )
+
+swim_df
+```
+
+If you need to remove coaches because they are included in the scraped elements:
+
+```{r}
+swim_df =
+  data.frame(
+    name[1:60],
+    location
+  )
+```
+
+---
+
+# 23. robots.txt
+
+Check whether a path is allowed:
+
+```{r}
+robotstxt::paths_allowed(
+  "https://en.wikipedia.org/wiki/Miami_University"
+)
+```
+
+The basic idea:
+
+```text
+website
+ ↓
+robots.txt
+ ↓
+paths_allowed()
+ ↓
+TRUE/FALSE
+```
+
+---
+
+# 24. Functions
+
+## Basic function
+
+```{r}
+my_function = function(x){
+
+  result = x * 2
+
+  return(result)
+}
+```
+
+Run it:
+
+```{r}
+my_function(5)
+```
+
+## Function with multiple arguments
+
+```{r}
+add_numbers = function(x, y){
+
+  result = x + y
+
+  return(result)
+}
+
+add_numbers(5, 10)
+```
+
+## Function returning a data frame
+
+```{r}
+make_df = function(x){
+
+  df = data.frame(
+    value = x
+  )
+
+  return(df)
+}
+```
+
+---
+
+# 25. `paste0()`
+
+Use `paste0()` to build strings/URLs.
+
+```{r}
+x = "123"
+
+url =
+  paste0(
+    "https://example.com/",
+    x
+  )
+
+url
+```
+
+Multiple pieces:
+
+```{r}
+paste0(
+  "https://example.com/",
+  "api/",
+  x,
+  "?format=json"
+)
+```
+
+Important:
+
+```r
+paste0("A", "B")
+# "AB"
+```
+
+---
+
+# 26. APIs and JSON
+
+Basic API workflow:
+
+```text
+Build URL
+ ↓
+Send/read request
+ ↓
+JSON response
+ ↓
+fromJSON()
+ ↓
+Navigate response
+ ↓
+Extract information
+```
+
+## Example
+
+```{r}
+url =
+  "https://api.weather.gov/points/26.142,-81.7948"
+
+response =
+  jsonlite::fromJSON(url)
+
+response
+```
+
+Access nested information:
+
+```{r}
+response$properties
+```
+
+Specific field:
+
+```{r}
+response$properties$gridX
+```
+
+Another:
+
+```{r}
+response$properties$gridY
+```
+
+---
+
+# 27. Weather.gov Study Example
+
+The provided material uses:
+
+```text
+https://api.weather.gov/points/26.142,-81.7948
+```
+
+The response contains:
+
+```text
+properties
+  gridId
+  gridX
+  gridY
+```
+
+The `gridX` value shown in the study material is:
+
+```text
+45
+```
+
+Code pattern:
+
+```{r}
+weather_url =
+  "https://api.weather.gov/points/26.142,-81.7948"
+
+weather =
+  jsonlite::fromJSON(weather_url)
+
+weather$properties$gridX
+```
+
+---
+
+# 28. Nested JSON / Lists
+
+Suppose:
+
+```{r}
+lst = list(
+  gdp = data.frame(
+    year = c(2020, 2021, 2022),
+    values = c(19200, 20500, 21300)
+  ),
+  population = list(
+    country = "United States",
+    values = c(325, 331, 335)
+  ),
+  inflation_rate = 3.2
+)
+```
+
+Access:
+
+```{r}
+lst$gdp
+```
+
+```{r}
+lst$population
+```
+
+```{r}
+lst$population$country
+```
+
+```{r}
+lst$population$values
+```
+
+```{r}
+lst$inflation_rate
+```
+
+Using position:
+
+```{r}
+lst[[1]]
+lst[[2]]
+lst[[3]]
+```
+
+---
+
+# 29. `purrr::map()`
+
+`map()` applies a function to each element.
+
+```{r}
+numbers = c(1, 2, 3, 4)
+
+double = function(x){
+  x * 2
+}
+
+purrr::map(
+  numbers,
+  double
+)
+```
+
+## `map_dbl()`
+
+When each result should be a number:
+
+```{r}
+purrr::map_dbl(
+  numbers,
+  double
+)
+```
+
+## `map_chr()`
+
+When each result should be character:
+
+```{r}
+purrr::map_chr(
+  numbers,
+  as.character
+)
+```
+
+## `map_df()`
+
+When each function call returns a data frame and you want to combine rows:
+
+```{r}
+purrr::map_df(
+  numbers,
+  make_df
+)
+```
+
+---
+
+# 30. Exact Study-Material API Pattern
+
+The study material creates a function for an IP address:
+
+```{r}
+ip_api = function(x){
+
+  paste0(
+    "http://ip-api.com/json/",
+    x,
+    "?fields=status,message,continent,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,currency,isp,org,as,query"
+  ) |>
+    jsonlite::fromJSON() ->
+    response
+
+  response |>
+    as.data.frame() ->
+    df
+
+  return(df)
+}
+```
+
+Then apply it to every IP:
+
+```{r}
+ip_addresses = c(
+  "8.8.8.8",
+  "1.1.1.1"
+)
+
+ip_df =
+  purrr::map_df(
+    .x = ip_addresses,
+    .f = ip_api
+  )
+
+ip_df
+```
+
+For the actual study dataset:
+
+```{r}
+toxic_ips =
+  readr::read_csv(
+    "data/toxic_ips_oct2025.csv"
+  )
+
+ip_addresses =
+  toxic_ips$IP
+
+ip_df =
+  purrr::map_df(
+    .x = ip_addresses,
+    .f = ip_api
+)
+
+ip_df
+```
+
+The target structure from the study material is:
+
+```text
+10 rows × 17 requested fields
+```
+
+---
+
+# 31. Tidy Data
+
+The three major tidy-data rules:
+
+```text
+1. Every variable is a column.
+2. Every observation is a row.
+3. Every value is a cell.
+```
+
+## Wide data
+
+```text
+country | 2020 | 2021 | 2022
+```
+
+## Long/tidy data
+
+```text
+country | year | value
+```
+
+---
+
+# 32. `pivot_longer()`
+
+Wide → long.
+
+```{r}
+wide_df =
+  data.frame(
+    country = c("USA", "Canada"),
+    `2020` = c(3, 2),
+    `2021` = c(4, 3),
+    `2022` = c(5, 4)
+  )
+
+long_df =
+  wide_df |>
+  tidyr::pivot_longer(
+    cols = c(
+      `2020`,
+      `2021`,
+      `2022`
+    ),
+    names_to = "year",
+    values_to = "value"
+  )
+
+long_df
+```
+
+---
+
+# 33. `pivot_wider()`
+
+Long → wide.
+
+```{r}
+wide_again =
+  long_df |>
+  tidyr::pivot_wider(
+    names_from = year,
+    values_from = value
+  )
+
+wide_again
+```
+
+Remember:
+
+```text
+pivot_longer = wide → long
+pivot_wider  = long → wide
+```
+
+---
+
+# 34. Unit of Analysis
+
+The unit of analysis is:
+
+> What one row represents.
+
+Examples:
+
+```text
+One row = one institution
+→ institution
+
+One row = one customer
+→ customer
+
+One row = one transaction
+→ transaction
+
+One row = one employee
+→ employee
+
+One row = one country
+→ country
+```
+
+The key question:
+
+```text
+"What does ONE ROW represent?"
+```
+
+---
+
+# 35. Technical Correctness
+
+Inspect:
+
+```{r}
+dplyr::glimpse(ntse_tbl)
+```
+
+Convert an identifier/category to factor:
+
+```{r}
+ntse_tbl$id =
+  as.factor(ntse_tbl$id)
+
+ntse_tbl$hbcu_indicator =
+  as.factor(ntse_tbl$hbcu_indicator)
+
+ntse_tbl$carnegie_category =
+  as.factor(ntse_tbl$carnegie_category)
+```
+
+Check:
+
+```{r}
+dplyr::glimpse(ntse_tbl)
+```
+
+---
+
+# 36. dplyr Essentials
+
+## Filter
+
+```{r}
+df |>
+  dplyr::filter(age > 21)
+```
+
+## Select
+
+```{r}
+df |>
+  dplyr::select(name, age)
+```
+
+## Mutate
+
+```{r}
+df |>
+  dplyr::mutate(
+    age2 = age * 2
+  )
+```
+
+## Arrange
+
+```{r}
+df |>
+  dplyr::arrange(age)
+```
+
+Descending:
+
+```{r}
+df |>
+  dplyr::arrange(
+    dplyr::desc(age)
+  )
+```
+
+## Count
+
+```{r}
+df |>
+  dplyr::count(major)
+```
+
+## Group
+
+```{r}
+df |>
+  dplyr::group_by(major)
+```
+
+## Summarize
+
+```{r}
+df |>
+  dplyr::summarise(
+    avg_age = mean(
+      age,
+      na.rm = TRUE
+    )
+  )
+```
+
+## Group + summarize
+
+```{r}
+df |>
+  dplyr::group_by(major) |>
+  dplyr::summarise(
+    avg_age = mean(
+      age,
+      na.rm = TRUE
+    )
+  )
+```
+
+---
+
+# 37. Joins — Know the Basic Idea
+
+These are useful when combining datasets.
+
+## Left join
+
+```{r}
+result =
+  df1 |>
+  dplyr::left_join(
+    df2,
+    by = "id"
+  )
+```
+
+## Inner join
+
+```{r}
+result =
+  df1 |>
+  dplyr::inner_join(
+    df2,
+    by = "id"
+  )
+```
+
+## Full join
+
+```{r}
+result =
+  df1 |>
+  dplyr::full_join(
+    df2,
+    by = "id"
+  )
+```
+
+Main idea:
+
+```text
+left_join  = keep everything from left table
+inner_join = keep matching rows
+full_join  = keep everything from both
+```
+
+---
+
+# 38. Logical Operators
+
+You should recognize:
+
+```r
+==    # equal
+!=    # not equal
+>     # greater than
+<     # less than
+>=    # greater than or equal
+<=    # less than or equal
+```
+
+AND:
+
+```r
+&
+```
+
+OR:
+
+```r
+|
+```
+
+NOT:
+
+```r
+!
+```
+
+Example:
+
+```{r}
+df |>
+  dplyr::filter(
+    age >= 21 &
+    major == "Accountancy"
+  )
+```
+
+---
+
+# 39. Useful Base R Functions
+
+```r
+length()
+```
+
+Number of elements.
+
+```r
+unique()
+```
+
+Unique values.
+
+```r
+sort()
+```
+
+Sort values.
+
+```r
+range()
+```
+
+Minimum and maximum.
+
+```r
+mean()
+```
+
+Average.
+
+```r
+median()
+```
+
+Median.
+
+```r
+sum()
+```
+
+Sum.
+
+```r
+min()
+```
+
+Minimum.
+
+```r
+max()
+```
+
+Maximum.
+
+```r
+sd()
+```
+
+Standard deviation.
+
+---
+
+# 40. Data Visualization / Encoding
+
+The material emphasizes visual data encoding.
+
+Common encodings:
+
+```text
+X-position
+Y-position
+Color
+Size
+Shape
+Line type
+Transparency / alpha
+```
+
+Example:
+
+```{r}
+ggplot2::ggplot(
+  df,
+  ggplot2::aes(
+    x = age,
+    y = income,
+    color = major,
+    size = experience
+  )
+) +
+  ggplot2::geom_point()
+```
+
+Interpretation:
+
+```text
+x       → position
+y       → position
+color   → category
+size    → magnitude
+```
+
+---
+
+# 41. Basic ggplot2 Patterns
+
+Scatterplot:
+
+```{r}
+ggplot2::ggplot(
+  df,
+  ggplot2::aes(
+    x = x,
+    y = y
+  )
+) +
+  ggplot2::geom_point()
+```
+
+Bar chart:
+
+```{r}
+ggplot2::ggplot(
+  df,
+  ggplot2::aes(
+    x = category
+  )
+) +
+  ggplot2::geom_bar()
+```
+
+Histogram:
+
+```{r}
+ggplot2::ggplot(
+  df,
+  ggplot2::aes(
+    x = value
+  )
+) +
+  ggplot2::geom_histogram()
+```
+
+Color:
+
+```{r}
+ggplot2::ggplot(
+  df,
+  ggplot2::aes(
+    x = x,
+    y = y,
+    color = category
+  )
+) +
+  ggplot2::geom_point()
+```
+
+---
+
+# 42. R vs. Spreadsheet vs. SQL
+
+## Spreadsheet
+
+Use when:
+
+```text
+Small/simple data
+Quick manual work
+Simple calculations
+Quick inspection
+```
+
+## SQL
+
+Use when:
+
+```text
+Working directly with databases
+Filtering/querying tables
+Joining relational tables
+Aggregating database data
+```
+
+## R
+
+Use when:
+
+```text
+Statistical analysis
+Data visualization
+Complex data cleaning
+Automation
+Reproducible analysis
+Programming
+Advanced analytics
+```
+
+---
+
+# 43. Full Web-Scraping Template
+
+Use this as a starting point for a new scraping problem:
+
+```{r}
+url =
+  "https://example.com"
+
+page =
+  rvest::read_html(url)
+
+results =
+  page |>
+  rvest::html_elements("CSS SELECTOR") |>
+  rvest::html_text2()
+
+results
+```
+
+For links:
+
+```{r}
+links =
+  page |>
+  rvest::html_elements("a") |>
+  rvest::html_attr("href")
+
+links
+```
+
+For absolute links:
+
+```{r}
+links =
+  links |>
+  rvest::url_absolute(url)
+
+links
+```
+
+---
+
+# 44. Full API Template
+
+```{r}
+url =
+  "https://example.com/api"
+
+response =
+  jsonlite::fromJSON(url)
+
+dplyr::glimpse(response)
+```
+
+Then inspect nested information:
+
+```{r}
+names(response)
+```
+
+```{r}
+response$properties
+```
+
+```{r}
+response$properties$value
+```
+
+---
+
+# 45. Full API + Function + map_df Template
+
+```{r}
+api_function = function(x){
+
+  url =
+    paste0(
+      "https://example.com/api/",
+      x
+    )
+
+  response =
+    jsonlite::fromJSON(url)
+
+  df =
+    as.data.frame(response)
+
+  return(df)
+}
+
+results =
+  purrr::map_df(
+    items,
+    api_function
+)
+```
+
+This is one of the most important templates in the entire study guide.
+
+---
+
+# 46. Full CSV → API → Data Frame Template
+
+```{r}
+input =
+  readr::read_csv(
+    "data/input.csv"
+  )
+
+items =
+  input$IP
+
+api_function = function(x){
+
+  url =
+    paste0(
+      "http://ip-api.com/json/",
+      x
+    )
+
+  response =
+    jsonlite::fromJSON(url)
+
+  response |>
+    as.data.frame()
+}
+
+output =
+  purrr::map_df(
+    items,
+    api_function
+)
+
+output
+```
+
+---
+
+# 47. Quick Exam Recognition Guide
+
+```text
+lst[2]
+→ list containing element 2
+
+lst[[2]]
+→ element 2 itself
+
+df[500, ]
+→ row 500
+
+nrow(df)
+→ observations
+
+ncol(df)
+→ variables
+
+glimpse(df)
+→ structure/overview
+
+str_detect()
+→ find whether text contains a pattern
+
+fromJSON()
+→ JSON into R
+
+read_csv()
+→ CSV into R
+
+read_html()
+→ webpage into R
+
+html_elements()
+→ find HTML elements
+
+html_text2()
+→ extract text
+
+html_attr("href")
+→ extract links
+
+url_absolute()
+→ make URL complete
+
+paths_allowed()
+→ check robots.txt
+
+function(x)
+→ create a function
+
+map()
+→ apply function repeatedly
+
+map_df()
+→ apply + combine into data frame
+
+pivot_longer()
+→ wide to long
+
+pivot_wider()
+→ long to wide
+
+as.factor()
+→ categorical/factor
+
+unit of analysis
+→ what one row represents
+
+color
+→ visual encoding
+
+x/y
+→ positional encoding
+```
+
+---
+
+# 48. Final Practice: Write These From Memory
+
+Do not look at the answers while practicing.
+
+## Practice 1
+
+Read a CSV called `students.csv`.
+
+```{r}
+# Your code:
+```
+
+## Practice 2
+
+Show the number of observations.
+
+```{r}
+# Your code:
+```
+
+## Practice 3
+
+Show the 500th row.
+
+```{r}
+# Your code:
+```
+
+## Practice 4
+
+Find emails containing `"miamioh.edu"`.
+
+```{r}
+# Your code:
+```
+
+## Practice 5
+
+Count how many contain `"miamioh.edu"`.
+
+```{r}
+# Your code:
+```
+
+## Practice 6
+
+Read an HTML webpage.
+
+```{r}
+# Your code:
+```
+
+## Practice 7
+
+Extract all hyperlinks.
+
+```{r}
+# Your code:
+```
+
+## Practice 8
+
+Extract all text from `<h3>` elements.
+
+```{r}
+# Your code:
+```
+
+## Practice 9
+
+Check whether a URL is allowed by robots.txt.
+
+```{r}
+# Your code:
+```
+
+## Practice 10
+
+Read JSON from a URL.
+
+```{r}
+# Your code:
+```
+
+## Practice 11
+
+Access `gridX` from a nested API response.
+
+```{r}
+# Your code:
+```
+
+## Practice 12
+
+Create a function that doubles a number.
+
+```{r}
+# Your code:
+```
+
+## Practice 13
+
+Apply that function to every number in a vector.
+
+```{r}
+# Your code:
+```
+
+## Practice 14
+
+Convert a numeric categorical variable to a factor.
+
+```{r}
+# Your code:
+```
+
+## Practice 15
+
+Convert wide data to long data.
+
+```{r}
+# Your code:
+```
+
+---
+
+# 49. Answers to the Final Practice
+
+## 1
+
+```r
+students =
+  readr::read_csv("students.csv")
+```
+
+## 2
+
+```r
+nrow(students)
+```
+
+## 3
+
+```r
+students[500, ]
+```
+
+## 4
+
+```r
+students$Email |>
+  stringr::str_detect("miamioh.edu")
+```
+
+## 5
+
+```r
+students$Email |>
+  stringr::str_detect("miamioh.edu") |>
+  sum()
+```
+
+## 6
+
+```r
+page =
+  rvest::read_html(
+    "https://example.com"
+  )
+```
+
+## 7
+
+```r
+page |>
+  rvest::html_elements("a") |>
+  rvest::html_attr("href")
+```
+
+## 8
+
+```r
+page |>
+  rvest::html_elements("h3") |>
+  rvest::html_text2()
+```
+
+## 9
+
+```r
+robotstxt::paths_allowed(
+  "https://example.com"
+)
+```
+
+## 10
+
+```r
+response =
+  jsonlite::fromJSON(
+    "https://example.com/api"
+  )
+```
+
+## 11
+
+```r
+response$properties$gridX
+```
+
+## 12
+
+```r
+double =
+  function(x){
+    x * 2
+  }
+```
+
+## 13
+
+```r
+purrr::map_dbl(
+  numbers,
+  double
+)
+```
+
+## 14
+
+```r
+df$category =
+  as.factor(
+    df$category
+  )
+```
+
+## 15
+
+```r
+df |>
+  tidyr::pivot_longer(
+    cols = everything(),
+    names_to = "variable",
+    values_to = "value"
+  )
+```
+
+---
+
+# 50. MOST IMPORTANT CODE TO MEMORIZE
+
+If you have limited time, memorize these patterns first:
+
+```r
+# IMPORT
+readr::read_csv()
+jsonlite::fromJSON()
+
+# EXPLORE
+dplyr::glimpse()
+nrow()
+ncol()
+dim()
+str()
+head()
+tail()
+
+# INDEX
+df[500, ]
+df[, 3]
+df[500, 3]
+df$column
+lst[2]
+lst[[2]]
+lst$name
+
+# STRINGS
+stringr::str_detect()
+stringr::str_extract()
+stringr::str_replace()
+stringr::str_replace_all()
+
+# SCRAPING
+rvest::read_html()
+rvest::html_elements()
+rvest::html_text2()
+rvest::html_attr()
+rvest::url_absolute()
+
+# ROBOTS
+robotstxt::paths_allowed()
+
+# FUNCTIONS
+function(x)
+return()
+
+# API
+paste0()
+jsonlite::fromJSON()
+
+# PURRR
+purrr::map()
+purrr::map_dbl()
+purrr::map_chr()
+purrr::map_df()
+
+# TIDY
+tidyr::pivot_longer()
+tidyr::pivot_wider()
+
+# DATA TYPES
+as.character()
+as.numeric()
+as.integer()
+as.logical()
+as.factor()
+
+# DPLYR
+filter()
+select()
+mutate()
+arrange()
+group_by()
+summarise()
+count()
+
+# VISUAL ENCODING
+x/y position
+color
+size
+shape
+```
+
+---
+
+# Final Mental Model
+
+When you encounter a new problem, ask:
+
+```text
+1. What kind of data is this?
+        ↓
+2. How do I import it?
+        ↓
+3. What does one row represent?
+        ↓
+4. What are the variable types?
+        ↓
+5. How do I inspect it?
+        ↓
+6. Do I need to filter/select/mutate?
+        ↓
+7. Is this text/string manipulation?
+        ↓
+8. Is this a webpage?
+        ↓
+9. Is this an API?
+        ↓
+10. Is the response JSON/nested?
+        ↓
+11. Do I need a function?
+        ↓
+12. Do I need map/map_df?
+        ↓
+13. Is the resulting data tidy?
+        ↓
+14. How would I visualize/encode it?
+```
+
+This is the **core R workflow** represented by the material you provided.

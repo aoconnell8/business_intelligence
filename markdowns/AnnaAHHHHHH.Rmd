@@ -1,0 +1,173 @@
+---
+title: "PracticeExam"
+author: "Anna OConnell"
+date: "2026-10-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+hibp = jsonlite::fromJSON(
+  "https://miamioh.instructure.com/courses/258169/files/40605433?wrap=1")
+
+```
+
+```{r}
+robotstxt::paths_allowed(
+  paths = "wiki/Miami_University",
+  domain = "en.wikipedia.org/"
+)
+```
+
+```{r}
+if(require(rvest) == FALSE) install.packages("rvest")
+if(require(dplyr) == FALSE) install.packages("dplyr")
+
+mu_page <- rvest::read_html("https://miamioh.edu/policy-library/students/undergraduate/academic-regulations/index.html")
+
+all_links <- mu_page |>
+  rvest::html_elements("a")
+
+link_preview <- dplyr::tibble(
+  text = all_links |> rvest::html_text2(),
+  href = all_links |> rvest::html_attr("href")
+)
+
+# Print ALL 220 rows so we can see the real pattern of the policy links
+print(link_preview, n = 220)
+
+
+
+```
+
+
+```{r}
+# Keep people older than 21
+df |> dplyr::filter(age > 21)
+
+# Keep only name and income
+df |> dplyr::select(name, income)
+
+# Create a new column
+df |> dplyr::mutate(income_thousands = income / 1000)
+
+# Sort from lowest to highest income
+df |> dplyr::arrange(income)
+
+# Calculate average income
+df |> dplyr::summarise(avg_income = mean(income, na.rm = TRUE))
+
+df[3, ]       # Third row, every column
+df[, 2]       # Every row, second column
+df[3, 2]      # Third row, second column
+df$name       # The name column
+
+
+lst[2]        # A list containing element 2
+lst[[2]]      # The actual second element
+lst$name      # The element named "name"
+
+# Read a CSV
+df <- readr::read_csv("data.csv")
+
+# Read JSON
+response <- jsonlite::fromJSON(url)
+
+# Read a webpage
+page <- rvest::read_html(url)
+
+# Extract webpage text
+page |> rvest::html_elements("h3") |> rvest::html_text2()
+
+# Extract hyperlinks
+page |> rvest::html_elements("a") |> rvest::html_attr("href")
+
+
+double <- function(x) {
+  x * 2
+}
+
+purrr::map_dbl(c(1, 2, 3), double)
+```
+
+The 3 coding patterns I would learn first
+These are especially valuable because the practice exam has three longer coding questions on scraping and APIs. Pasted text.txt
+
+1. Scrape links from a webpage
+
+```{r}
+url <- "https://example.com"
+
+mu_policies <- url |>
+  rvest::read_html() |>
+  rvest::html_elements("a") |>
+  rvest::html_attr("href")
+```
+
+```{r}
+# Keep rows where age is at least 21
+df |> dplyr::filter(age >= 21)
+
+# Keep only the name and GPA columns
+df |> dplyr::select(name, GPA)
+
+# Filter rows AND keep only certain columns
+df |>
+  dplyr::filter(age >= 21) |>  # Keep qualifying rows
+  dplyr::select(name, GPA)     # Keep only these columns
+
+# Create a new column
+df |>
+  dplyr::mutate(income_thousands = income / 1000)
+
+# Sort from lowest to highest income
+df |> dplyr::arrange(income)
+
+# Sort from highest to lowest income
+df |> dplyr::arrange(dplyr::desc(income))
+
+# Calculate an average, ignoring missing values
+df |>
+  dplyr::summarise(avg_GPA = mean(GPA, na.rm = TRUE))
+
+# Count rows in each category
+df |> dplyr::count(major)
+
+# Keep rows matching either condition
+df |> dplyr::filter(age < 18 | age > 65)
+
+# Keep rows matching BOTH conditions
+df |> dplyr::filter(age >= 18 & GPA >= 3.0)
+
+```
+
+
+```{r}
+# Example API URL (replace with the endpoint required by the question)
+url <- "https://api.example.com/data"
+
+# Send the request and parse the JSON response into an R object
+response <- jsonlite::fromJSON(url)
+
+# Inspect the returned object
+str(response)
+
+# Look at its names
+names(response)
+
+# Access a field inside a list
+response$properties
+
+# Access a nested field inside a list
+response$properties$gridX
+
+# Access a field inside a data frame
+response$year
+
+# Convert a simple response to a data frame
+df <- as.data.frame(response)
+```
+
