@@ -1,0 +1,213 @@
+---
+title: "Exam1"
+author: "Anna OConnell"
+date: "2026-10-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+d = readr::read_csv("https://raw.githubusercontent.com/fmegahed/isa401/main/data/penguin_captures.csv")
+print(names(d))
+print(table(d$species, useNA='ifany'))
+print(nrow(d))
+```
+
+```{r Q1}
+penguins <- readr::read_csv("https://raw.githubusercontent.com/fmegahed/isa401/main/data/penguin_captures.csv")
+
+# Step 1: find bands captured in more than one distinct year
+recaptured_bands <- penguins |>
+  dplyr::group_by(band) |>
+  dplyr::summarise(n_years = dplyr::n_distinct(year), .groups = "drop") |>
+  dplyr::filter(n_years > 1)
+
+recaptured_bands
+
+# Step 2: pull the full records for those recaptured penguins, sorted nicely
+recaptured_penguins <- penguins |>
+  dplyr::filter(band %in% recaptured_bands$band) |>
+  dplyr::arrange(band, year)
+
+recaptured_penguins
+
+# The actual lookup: one row per band, with its species
+band_species <- penguins |>
+  dplyr::distinct(band, species) |>
+  dplyr::arrange(band)
+
+band_species
+
+# Count unique penguins per species
+species_counts <- band_species |>
+  dplyr::count(species, name = "n_penguins") |>
+  dplyr::arrange(dplyr::desc(n_penguins))
+
+species_counts
+```
+
+```{r Q3}
+crashes_by_day = c(2020, 2241, 2327, 2285, 2380, "1866", 1664)
+names(crashes_by_day) = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+sum(crashes_by_day > 300)
+```
+
+
+```{r Q4}
+
+
+campus <- jsonlite::fromJSON("https://isa401-find-your-seat.vercel.app/campus.json")
+
+sum(campus$Farmer$floors[["1"]]$rooms$all_sections)
+
+```
+
+
+```{r Q6}
+if(require(httr2)==FALSE) install.packages("httr2")
+
+req <- httr2::request("https://data.cincinnati-oh.gov/resource/rvmt-pkmq.json") |>
+  httr2::req_url_query(`$limit` = "1")
+
+resp <- httr2::req_perform(req)
+httr2::resp_body_json(resp)[[1]]
+
+```
+
+```{r Q6b}
+library(httr2)
+
+resp <- request("https://data.cincinnati-oh.gov/resource/rvmt-pkmq.json") |>
+  req_url_query(
+    `$select` = "count(*) AS n",
+    `$where` = "crashdate >= '2026-07-01T00:00:00' AND crashdate < '2026-08-01T00:00:00'"
+  ) |>
+  req_perform() |>
+  resp_body_json()
+
+as.integer(resp[[1]]$n)
+
+if(require(httr2)==FALSE) install.packages("httr2")
+
+req <- httr2::request("https://data.cincinnati-oh.gov/resource/rvmt-pkmq.json") |>
+  httr2::req_url_query(
+    `$select` = "count(distinct localreportno) as crashes",
+    `$where`  = "crashdate >= '2026-07-01T00:00:00' AND crashdate < '2026-08-01T00:00:00'"
+  )
+
+resp <- httr2::req_perform(req)
+httr2::resp_body_json(resp)[[1]]$crashes
+```
+
+```{r Q7}
+if(require(rvest)==FALSE) install.packages("rvest")
+
+page <- rvest::read_html("https://isa401-salvage.vercel.app/exam/registry?start=1")
+
+# Print the whole page's text so we can see headings, counts, captions, etc.
+cat(rvest::html_text2(page), "\n\n")
+
+# Print any links on the page -- pagination links will usually contain "start="
+links <- page |>
+  rvest::html_elements("a") |>
+  rvest::html_attr("href")
+
+cat("Links found on page:\n")
+print(links)
+
+```
+
+
+```{r Q7b}
+if(require(rvest)==FALSE) install.packages("rvest")
+if(require(purrr)==FALSE) install.packages("purrr")
+
+start_values <- seq(from = 1, to = 321, by = 40)
+
+classes <- purrr::map(start_values, function(s) {
+
+  url <- paste0("https://isa401-salvage.vercel.app/exam/registry?start=", s)
+
+  page <- rvest::read_html(url)
+
+  page |>
+    rvest::html_elements(".ship-class") |>
+    rvest::html_text2()
+
+}) |>
+  purrr::list_c()
+```
+
+
+```{r Q8 Q9}
+ncse_tbl = readr::read_csv("https://raw.githubusercontent.com/fmegahed/isa401/main/data/ncse_endowment_us_and_canada_2025.csv")
+dplyr::glimpse(ncse_tbl)
+
+if(require(readr)==FALSE) install.packages("readr")
+if(require(dplyr)==FALSE) install.packages("dplyr")
+
+ncse_tbl <- readr::read_csv("https://raw.githubusercontent.com/fmegahed/isa401/main/data/ncse_endowment_us_and_canada_2025.csv", show_col_types = FALSE)
+
+# Rule 1: hbcu_indicator should ONLY be 1, 2, or NA
+ncse_tbl |> dplyr::count(hbcu_indicator)
+
+# Rule 2: endowment_fy_25 should never be negative
+ncse_tbl |> dplyr::filter(endowment_fy_25 < 0)
+
+# Rule 3: id should be present for US rows and NA for Canadian rows
+# (we don't have a country column directly, so let's see if state holds
+#  any values that look like Canadian provinces, e.g. ON, BC, QC, AB...)
+ncse_tbl |> dplyr::distinct(state) |> dplyr::arrange(state) |> print(n = Inf)
+
+```
+
+
+
+```{r Q10}
+library(ellmer)
+
+# 1. Create a chat object
+chat <- ellmer::chat_openai(OPENAI_API_KEY)
+
+# 2. Define the Airbnb listing description
+description <- "This one of a kind, turn of the century, fully restored mansion is just waiting for you to come and enjoy the vast amenities this house offers! This historic Victorian Mansion was built in the last 1800's and has been fully restored and updated with one thing in mind--luxury! We boast a slate pool table, 10 person hot tub, a custom made fire table, a built in giant projector screen for streaming, arcade games, and much much more! We comfortably sleep 19 guests with 9 dedicated bedrooms."
+
+# 3. Define the structured output schema
+schema <- ellmer::type_object(
+  property_type = ellmer::type_string(),
+  max_guests = ellmer::type_integer(),
+  num_bedrooms = ellmer::type_integer(),
+  key_amenities = ellmer::type_string(
+    "List key amenities separated by |"
+  )
+)
+
+# 4. Extract structured information
+result <- chat$chat_structured(
+  description,
+  type = schema
+)
+
+# 5. Display results
+print(result)
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
