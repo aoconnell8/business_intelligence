@@ -18,7 +18,7 @@ DBI::dbDisconnect(con)
 ```
 
 ## Task 1
-```{r}
+```{r Task1}
 if(require(dplyr) == FALSE) install.packages("dplyr")
 
 # Count listings per host_id, across ALL cities combined
@@ -53,7 +53,7 @@ pct_chicago_big_hosts
 ```
 
 ## Task 2
-```{r}
+```{r Task2}
 
 family_listings <- listings |>
   dplyr::filter(
@@ -89,7 +89,7 @@ a3_result
 ```
 
 ## Task 3
-```{r}
+```{r Task3}
 city_room_summary <- listings |>
   dplyr::group_by(city, room_type) |>
   dplyr::summarise(
@@ -111,7 +111,7 @@ a4_result
 ```
 
 ## Task 4
-```{r}
+```{r Task4}
 concentration_summary <- listings |>
   dplyr::filter(!is.na(estimated_revenue_l365d)) |>
   dplyr::group_by(city) |>
@@ -139,7 +139,7 @@ a5_result
 ```
 
 ## Task 5
-```{r}
+```{r Task5}
 
 
 availability_oct <- availability |>
@@ -176,7 +176,7 @@ a6_a7_result
 ```
 
 ## Task 6
-```{r}
+```{r Task6}
 if(require(dplyr) == FALSE) install.packages("dplyr")
 
 # Step 1: Join reviews to listings to bring in city
@@ -224,7 +224,7 @@ a9_ratio
 
 
 ## Task 7
-```{r}
+```{r Task7}
 
 entire_homes_known_host <- listings |>
   dplyr::filter(
@@ -264,7 +264,7 @@ b1_result
 ```
 
 ## Task 8
-```{r}
+```{r Task8}
 if(require(dplyr) == FALSE) install.packages("dplyr")
 
 
@@ -283,5 +283,51 @@ lost_by_city
 #1 Chicago        267
 #2 Twin Cities    120
 #3 Columbus        69
+```
+
+## Question 12
+```{r Q12}
+if(require(dplyr) == FALSE) install.packages("dplyr")
+
+# ---- A2 for all three cities ----
+
+# Host listing counts across ALL cities combined (same as before)
+host_counts <- listings |>
+  dplyr::count(host_id, name = "host_listing_count")
+
+listings_joined <- listings |>
+  dplyr::left_join(host_counts, by = "host_id")
+
+a2_all_cities <- listings_joined |>
+  dplyr::group_by(city) |>
+  dplyr::summarise(
+    total_listings = dplyr::n(),
+    big_host_listings = sum(host_listing_count >= 10, na.rm = TRUE),
+    pct_held_by_big_hosts = (big_host_listings / total_listings) * 100,
+    .groups = "drop"
+  )
+
+a2_all_cities
+
+# ---- A5 for all three cities ----
+
+a5_all_cities <- listings |>
+  dplyr::filter(!is.na(estimated_revenue_l365d)) |>
+  dplyr::group_by(city) |>
+  dplyr::arrange(dplyr::desc(estimated_revenue_l365d), .by_group = TRUE) |>
+  dplyr::mutate(
+    rank_in_city = dplyr::row_number(),
+    cutoff = ceiling(0.10 * dplyr::n()),
+    is_top_10_pct = rank_in_city <= cutoff
+  ) |>
+  dplyr::summarise(
+    total_revenue = sum(estimated_revenue_l365d),
+    top_10_pct_revenue = sum(estimated_revenue_l365d[is_top_10_pct]),
+    pct_revenue_from_top_10_pct = (top_10_pct_revenue / total_revenue) * 100,
+    .groups = "drop"
+  )
+
+a5_all_cities
+
 ```
 

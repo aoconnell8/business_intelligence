@@ -542,6 +542,8 @@ occupation = readxl::read_excel(
 ```{r}
 campus = jsonlite::fromJSON(
   "https://isa401-find-your-seat.vercel.app/campus.json"
+  
+dplyr::row
 )
 ```
 
